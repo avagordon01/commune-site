@@ -1,0 +1,128 @@
+{{ define "posts" }}
+    <ol class="posts" start="0">
+        {{ template "posts-list" . }}
+    </ol>
+    <a href="?after={{ len . }}">more</a>
+{{ end }}
+{{ define "posts-list" }}
+    {{ range . }}
+        <li>
+            <p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> some text here</p>
+        </li>
+    {{ end }}
+{{ end }}
+{{ define "post" }}
+    <div class="post" id="{{ .Id }}">
+        <div class="post-content">{{ .Html }}</div>
+        <p>{{ .Username }}</p>
+        <a href="javascript:;" class="actions" onclick="toggle_summary(this);">summary</a>
+        <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
+        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
+        {{ if .Comments }}
+            <br/>
+            <br/>
+            <span class="line">// ----------------</span>
+            <br/>
+            {{ template "comment" .Comments }}
+        {{ else }}
+            <div class="comments">
+                <p>no comments yet</p>
+            </div>
+        {{ end }}
+    </div>
+{{ end }}
+{{ define "comment" }}
+    {{ with . }}
+        <div class="comments">
+            {{ range . }}
+                <br/>
+                <div class="comment" id="{{ .Id }}">
+                    <div class="comment-content">{{ .Html }}</div>
+                    <p>{{ .Username }}</p>
+                    <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
+                    <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
+                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
+                    {{ template "comment" .Comments }}
+                </div>
+            {{ end }}
+        </div>
+    {{ end }}
+{{ end }}
+{{ define "main" }}
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>{{ .Title }}</title>
+            <link rel="stylesheet" type="text/css" href="/static/style.css"/>
+            <script type="text/javascript" src="/static/script.js"></script>
+        </head>
+        <body>
+            <header>
+                <br/>
+                <h1>
+                    <a href="/">commune</a>
+                </h1>
+                <br/>
+                <span class="line">// ----------------</span>
+                <br/>
+                <br/>
+            </header>
+            <nav>
+                <br/>
+                <h2>freshness</h2>
+                <select onchange="set_freshness(0);">
+                    <option value="0">freshest</option>
+                    <option value="1">fresher</option>
+                    <option value="2">both</option>
+                    <option value="3">higher</option>
+                    <option value="4">highest</option>
+                </select>
+                <a href="javascript:;" onclick="set_freshness(0);">freshest</a>
+                <a href="javascript:;" onclick="set_freshness(1);">fresher</a>
+                <a href="javascript:;" onclick="set_freshness(2);">both</a>
+                <a href="javascript:;" onclick="set_freshness(3);">higher</a>
+                <a href="javascript:;" onclick="set_freshness(4);">highest</a>
+                <br/>
+                <label>
+                    autoupdate posts and comments
+                    <input type="checkbox" name="autoupdate" onclick="toggle_autoupdate();">
+                </label>
+                <br/><br/>
+
+                <h2>search</h2>
+                <form id="search" enc="multipart/form-data" action="/" method="get">
+                    <input name="search" type="search" required placeholder="#hashtag search query" title="">
+                    <input type="submit" value="search">
+                </form>
+                <br/>
+
+                <h2>submit post</h2>
+                <form id="post" autocomplete="on" enc="multipart/form-data" action="/submit_post" method="post">
+                    <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
+                    <a href="/post/guide">user guide</a>,
+                    <a href="/post/formatting">formatting</a>
+                    <input type="submit" value="post">
+                </form>
+                <br/>
+
+                <h2>about commune</h2>
+                <p>commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
+                <a href="/post/guide">user guide</a></p>
+                <br/>
+
+                <form id="comment" autocomplete="on" enc="multipart/form-data" action="/submit_comment" method="post">
+                    <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
+                    <a href="/post/guide">user guide</a>,
+                    <a href="/post/formatting">formatting</a>
+                    <input type="submit" value="reply">
+                    <input name="post_id" type="hidden" value="">
+                    <input name="comment_id" type="hidden" value="">
+                </form>
+            </nav>
+            <section>
+                {{ .Content }}
+            </section>
+        </body>
+    </html>
+{{ end }}
