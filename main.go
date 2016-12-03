@@ -3,6 +3,7 @@ package commune
 import (
     "os"
     "log"
+    "math"
     "sort"
     "net/http"
     "html/template"
@@ -51,6 +52,10 @@ var (
     user_counter uint64
     posts_encoder json.Encoder
 )
+
+func value(freshness float64, post Post) float64 {
+    return float64(post.Votes) * math.Pow(0.75, freshness * float64(10 - post.Time))
+}
 
 func init() {
     f, err := os.Open("posts.json")

@@ -1,13 +1,5 @@
 package commune
 
-import (
-    "math"
-)
-
-func value(freshness float64, post Post) float64 {
-    return float64(post.Votes) * math.Pow(0.75, freshness * float64(10 - post.Time))
-}
-
 func (p Freshness0) Len() int {             return len(p)}
 func (p Freshness0) Swap(i, j int) {        p[i], p[j] = p[j], p[i]}
 func (p Freshness0) Less(i, j int) bool {   return value(0, posts[p[i]]) > value(0, posts[p[j]])}

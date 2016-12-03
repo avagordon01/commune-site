@@ -2,7 +2,6 @@ package commune
 
 import (
     "log"
-    "fmt"
     "bytes"
     "time"
     "strconv"
@@ -30,7 +29,8 @@ func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64))
         }
         user_id, err := strconv.ParseUint(cookie.Value, 10, 64)
         if err != nil {
-            log.Fatal(err)
+            http.Error(w, err.Error(), http.StatusInternalServerError);
+            return
         }
         f(w, r, user_id)
     })
@@ -45,7 +45,8 @@ func fresh_cookie(f func(w http.ResponseWriter, r *http.Request, freshness uint6
         }
         freshness, err := strconv.ParseUint(cookie.Value, 10, 64)
         if err != nil {
-            log.Fatal(err)
+            http.Error(w, err.Error(), http.StatusInternalServerError);
+            return
         }
         f(w, r, freshness)
     })
@@ -54,7 +55,8 @@ func fresh_cookie(f func(w http.ResponseWriter, r *http.Request, freshness uint6
 func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
     templates, err = template.ParseGlob("templates.html");
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 
     var p []Post
@@ -64,7 +66,8 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
     var content bytes.Buffer
     err = templates.ExecuteTemplate(&content, "posts", p)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
     page := Page{
         Title: template.HTML("commune"),
@@ -72,14 +75,16 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
     }
     err = templates.ExecuteTemplate(w, "main", page)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 }
 
 func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
     templates, err = template.ParseGlob("templates.html");
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 
     var p []Post
@@ -90,7 +95,8 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
     var content bytes.Buffer
     err = templates.ExecuteTemplate(&content, "posts", p)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
     page := Page{
         Title: template.HTML("commune"),
@@ -98,34 +104,35 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
     }
     err = templates.ExecuteTemplate(w, "main", page)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 }
 
 func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
     templates, err = template.ParseGlob("templates.html");
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 
     path := r.URL.Path[len("/path/"):]
     //post_id, err := base64.URLEncoding.DecodeString(path)
     post_id, err := strconv.ParseUint(path, 10, 32)
     if err != nil {
-        w.WriteHeader(404)
-        fmt.Fprintln(w, http.StatusText(404))
+        http.NotFound(w, r)
         return
     }
     post, ok := posts[post_id]
     if !ok {
-        w.WriteHeader(404)
-        fmt.Fprintln(w, http.StatusText(404))
+        http.NotFound(w, r)
         return
     }
     var content bytes.Buffer
     err = templates.ExecuteTemplate(&content, "post", post)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
     page := Page{
         Title: template.HTML("commune"),
@@ -133,7 +140,8 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
     }
     err = templates.ExecuteTemplate(w, "main", page)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
 }
 
@@ -169,8 +177,7 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
         }
     }
     if title == "" {
-        w.WriteHeader(http.StatusBadRequest)
-        fmt.Fprintln(w, http.StatusText(http.StatusBadRequest))
+        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest);
         return
     }
 
@@ -200,7 +207,8 @@ func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
     }
     post_id, err := strconv.ParseUint(post_id_s[0], 10, 64)
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
     comment_id_s, ok := r.Form["comment_id"]
     if !ok {
@@ -216,7 +224,8 @@ func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
         comment_id = 0
     }
     if err != nil {
-        log.Fatal(err)
+        http.Error(w, err.Error(), http.StatusInternalServerError);
+        return
     }
     log.Println(post_id)
     log.Println(comment_id)
