@@ -1,11 +1,10 @@
-package commune
+package main
 
 import (
     "log"
     "bytes"
     "time"
     "strconv"
-    "strings"
     "net/http"
     "html/template"
     "golang.org/x/net/html"
@@ -15,7 +14,7 @@ import (
 
 func hsts(f func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Strict-Transport-Security", "max-age=31536000")
+        w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
         f(w, r)
     })
 }
@@ -40,7 +39,7 @@ func fresh_cookie(f func(w http.ResponseWriter, r *http.Request, freshness uint6
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         cookie, err := r.Cookie("freshness")
         if err != nil {
-            cookie = &http.Cookie{Name: "freshness", Value: strconv.FormatUint(2, 10), Expires: time.Unix(1<<63-1, 0), Secure: true}
+            cookie = &http.Cookie{Name: "freshness", Value: strconv.FormatUint(2, 10), Expires: time.Now().Add(time.Hour * 12), Secure: true}
             http.SetCookie(w, cookie)
         }
         freshness, err := strconv.ParseUint(cookie.Value, 10, 64)
@@ -59,12 +58,24 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
         return
     }
 
+    after, err := strconv.ParseUint(r.FormValue("after"), 10, 64)
+    if err != nil {
+        after = uint64(0)
+    }
     var p []Post
-    for i := 0; i < len(index[0]) && i < 20; i++ {
-        p = append(p, posts[index[0][i]])
+    for i := uint64(0); i + after < uint64(len(index[0])) && i < 20; i++ {
+        p = append(p, posts[index[0][i + after]])
+    }
+    type PageAfter struct {
+        Posts []Post
+        After uint64
+    }
+    input := PageAfter{
+        Posts: p,
+        After: after + 20,
     }
     var content bytes.Buffer
-    err = templates.ExecuteTemplate(&content, "posts", p)
+    err = templates.ExecuteTemplate(&content, "posts", input)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError);
         return
@@ -117,17 +128,12 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
     }
 
     path := r.URL.Path[len("/path/"):]
-    //post_id, err := base64.URLEncoding.DecodeString(path)
-    post_id, err := strconv.ParseUint(path, 10, 32)
+    post_id, err := strconv.ParseUint(path, 10, 64)
     if err != nil {
         http.NotFound(w, r)
         return
     }
-    post, ok := posts[post_id]
-    if !ok {
-        http.NotFound(w, r)
-        return
-    }
+    post := posts[post_id]
     var content bytes.Buffer
     err = templates.ExecuteTemplate(&content, "post", post)
     if err != nil {
@@ -146,109 +152,58 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 }
 
 func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
-    r.ParseMultipartForm(1<<20)
-    post_text_s, ok := r.Form["textarea"]
-    if !ok {
-        log.Fatal("no text")
-    }
-    if len(post_text_s) == 0 {
-        log.Fatal("empty text")
-    }
     user_name := "user"
-    markdown_raw := post_text_s[0]
+    markdown_raw := r.FormValue("text")
     markdown_san := []byte(html.EscapeString(markdown_raw))
     html_raw := blackfriday.MarkdownCommon(markdown_san)
     html_san := string(bluemonday.UGCPolicy().SanitizeBytes(html_raw))
 
-    //get title
-    z := html.NewTokenizer(strings.NewReader(html_san))
-    title := ""
-    for {
-        tt := z.Next()
-        switch {
-            case tt == html.ErrorToken:
-                return
-            case tt == html.StartTagToken:
-                if z.Token().Data == "h1" {
-                    z.Next()
-                    title = z.Token().Data
-                    return
-                }
-        }
-    }
-    if title == "" {
-        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest);
-        return
-    }
-
-    //create post
     post := Post{
-        Title: title,
+        Title: r.FormValue("title"),
         Votes: 0,
         Username: user_name,
         Html: template.HTML(html_san),
         Comments: []Comment{},
     }
-    log.Println(post)
+    post.Id = uint64(len(posts))
+    posts[post.Id] = post;
     posts_encoder.Encode(posts)
 
-    post_id := uint64(0)
-    http.Redirect(w, r, "/post/" + strconv.FormatUint(post_id, 10), http.StatusSeeOther)
+    http.Redirect(w, r, "/post/" + strconv.FormatUint(post.Id, 10), http.StatusSeeOther)
 }
 
 func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
-    r.ParseMultipartForm(1<<20)
-    post_id_s, ok := r.Form["post_id"]
-    if !ok {
-        log.Fatal("no post_id")
-    }
-    if len(post_id_s) == 0 {
-        log.Fatal("empty post_id")
-    }
-    post_id, err := strconv.ParseUint(post_id_s[0], 10, 64)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError);
-        return
-    }
-    comment_id_s, ok := r.Form["comment_id"]
-    if !ok {
-        log.Fatal("no comment_id")
-    }
-    if len(comment_id_s) == 0 {
-        log.Fatal("empty comment_id")
-    }
-    var comment_id uint64
-    if comment_id_s[0] != "" {
-        comment_id, err = strconv.ParseUint(comment_id_s[0], 10, 64)
-    } else {
-        comment_id = 0
-    }
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError);
-        return
-    }
-    log.Println(post_id)
-    log.Println(comment_id)
-
-    if strings.ToLower(r.Method) != "post" {
-        http.NotFound(w, r)
-        return
-    }
     user_name := "user"
-    markdown_raw := "empty"
+    markdown_raw := r.FormValue("text")
     markdown_san := []byte(html.EscapeString(markdown_raw))
     html_raw := blackfriday.MarkdownCommon(markdown_san)
     html_san := string(bluemonday.UGCPolicy().SanitizeBytes(html_raw))
 
-    //create comment
     comment := Comment{
         Votes: 0,
         Username: user_name,
         Html: template.HTML(html_san),
         Comments: []Comment{},
     }
-    log.Println(comment)
+    post_id, err := strconv.ParseUint(r.FormValue("post_id"), 10, 64)
+    if err != nil {
+        http.NotFound(w, r)
+        return
+    }
+    comment_id, err := strconv.ParseUint(r.FormValue("comment_id"), 10, 64)
+    if err == strconv.ErrSyntax {
+        posts[post_id].Comments = append(posts[post_id].Comments, comment)
+    } else if err != nil {
+        http.NotFound(w, r)
+        return
+    } else {
+        log.Println(comment_id)
+        //find comment and add reply
+    }
     posts_encoder.Encode(posts)
 
-    http.Redirect(w, r, "/post/" + strconv.FormatUint(post_id, 10) + "#" + strconv.FormatUint(comment_id, 10), http.StatusSeeOther)
+    http.Redirect(w, r, "/post/" + strconv.FormatUint(post_id, 10) + "#" + strconv.FormatUint(comment.Id, 10), http.StatusSeeOther)
+}
+
+func submit_upvote(w http.ResponseWriter, r *http.Request, user_id uint64) {
 }

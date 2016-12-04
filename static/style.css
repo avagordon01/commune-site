@@ -43,7 +43,7 @@ nav {
 form {
     overflow-y: hidden;
 }
-input[type="search"], input[type="submit"], textarea {
+input[type="search"], input[type="submit"], input[type="text"], textarea {
     box-shadow: none;
     font-family: inherit;
     font-size: 100%;
@@ -71,7 +71,7 @@ input[type="submit"] {
     float: right;
     cursor: pointer;
 }
-#comment {
+#comment, #upvote {
     display: none;
 }
 
@@ -91,6 +91,9 @@ input[type="submit"] {
     margin-left: 2em;
 }
 .actions {
+    color: #777777;
+}
+.info {
     color: #777777;
 }
 .line {

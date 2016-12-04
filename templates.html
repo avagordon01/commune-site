@@ -1,8 +1,8 @@
 {{ define "posts" }}
     <ol class="posts" start="0">
-        {{ template "posts-list" . }}
+        {{ template "posts-list" .Posts }}
     </ol>
-    <a href="?after={{ len . }}">more</a>
+    <a href="?after={{ .After }}">more</a>
 {{ end }}
 {{ define "posts-list" }}
     {{ range . }}
@@ -12,9 +12,9 @@
     {{ end }}
 {{ end }}
 {{ define "post" }}
-    <div class="post" id="{{ .Id }}">
+    <div class="post">
         <div class="post-content">{{ .Html }}</div>
-        <p>{{ .Username }}</p>
+        <p class="info">{{ .Username }}, {{ .Votes }} upvotes, at {{ .Time.Format "15:04 02-01-2006" }}</p>
         <a href="javascript:;" class="actions" onclick="toggle_summary(this);">summary</a>
         <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
         <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
@@ -38,10 +38,11 @@
                 <br/>
                 <div class="comment" id="{{ .Id }}">
                     <div class="comment-content">{{ .Html }}</div>
-                    <p>{{ .Username }}</p>
+                    <p class="info">{{ .Username }}, {{ .Votes }} upvotes, at {{ .Time.Format "15:04 02-01-2006" }}</p>
                     <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
                     <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
                     <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
+                    <a href="#{{ .Id }}" class="actions">permalink</a>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}
@@ -83,22 +84,18 @@
                 <a href="javascript:;" onclick="set_freshness(2);">both</a>
                 <a href="javascript:;" onclick="set_freshness(3);">higher</a>
                 <a href="javascript:;" onclick="set_freshness(4);">highest</a>
-                <br/>
-                <label>
-                    autoupdate posts and comments
-                    <input type="checkbox" name="autoupdate" onclick="toggle_autoupdate();">
-                </label>
                 <br/><br/>
 
                 <h2>search</h2>
-                <form id="search" enc="multipart/form-data" action="/" method="get">
+                <form id="search" autocomplete="on" enc="multipart/form-data" action="/" method="get">
                     <input name="search" type="search" required placeholder="#hashtag search query" title="">
                     <input type="submit" value="search">
                 </form>
                 <br/>
 
                 <h2>submit post</h2>
-                <form id="post" autocomplete="on" enc="multipart/form-data" action="/submit_post" method="post">
+                <form id="post" autocomplete="off" enc="multipart/form-data" action="/submit_post" method="post">
+                    <input type="text" name="title" required placeholder="title" title="">
                     <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune#format">formatting</a>
@@ -110,13 +107,17 @@
                 <p>commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
                 <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                 <a href="https://github.com/paddygord/commune">source</a></p>
-                <br/>
 
-                <form id="comment" autocomplete="on" enc="multipart/form-data" action="/submit_comment" method="post">
+                <form id="comment" autocomplete="off" enc="multipart/form-data" action="/submit_comment" method="post">
                     <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune#format">formatting</a>
                     <input type="submit" value="reply">
+                    <input name="post_id" type="hidden" value="">
+                    <input name="comment_id" type="hidden" value="">
+                </form>
+
+                <form id="upvote" autocomplete="off" enc="multipart/form-data" action="/submit_upvote" method="post">
                     <input name="post_id" type="hidden" value="">
                     <input name="comment_id" type="hidden" value="">
                 </form>

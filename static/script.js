@@ -1,9 +1,6 @@
-function toggle_autoupdate() {
-}
-
 function set_freshness(value) {
     var d = new Date();
-    d.setTime(d.getTime() + (7*24*60*60*1000));
+    d.setTime(d.getTime() + (12*60*60*1000));
     document.cookie = "freshness=" + value + ";expires=" + d.toUTCString() + ";path=/;Secure";
 }
 
@@ -27,6 +24,18 @@ function toggle_hidden(element) {
     }
 }
 
+function toggle_upvote(element) {
+    var upvote = document.querySelector("#upvote")
+    post = document.querySelector(".post")
+    upvote.post_id.value = post.id
+    if (element.parentElement != post) {
+        upvote.comment_id.value = element.parentElement.id
+    } else {
+        upvote.comment_id.value = ""
+    }
+    upvote.submit();
+}
+
 function toggle_comment(element) {
     var comment = document.querySelector("#comment")
     if (comment == element.nextSibling) {
@@ -39,6 +48,8 @@ function toggle_comment(element) {
         comment.post_id.value = post.id
         if (element.parentElement != post) {
             comment.comment_id.value = element.parentElement.id
+        } else {
+            comment.comment_id.value = ""
         }
         element.parentElement.insertBefore(comment, element.nextSibling)
     }
