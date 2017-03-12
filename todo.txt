@@ -1,0 +1,43 @@
+have simple http for more links with progressive enhancement websocket for just request relevant HTML, cuts down on page renders
+but also have to recreate browser functionality, like passing cookies, handling cancelling/reloads, passing url parameters
+take posts/comments from http into json
+take upvotes from http into json
+write value function for posts and comments, use EWMA
+recentness shouldnt be linear, make it logarithmic maybe
+also value shouldnt be linear
+embedding links/media in posts/comments
+previewing posts/comments
+reddit doesnt have preview, but you can edit your comment
+trending topics, on submit post/comment, add to EWMA
+similar topics, on submit pos/comment, add to matrix of EWMA
+
+database can be made efficient by precomputing everything as it comes in, so the search/sort only has to search a single index
+the value of a post/comment is a function of votes (agrees), the values of replies, and another function of the length, number of links, "quality" metric
+rate limit comments/posts/upvotes per user id
+media backed by IPFS, text on server
+use noembed for everything, maybe have to write/run a ipfs->oembed gateway for uploaded content
+maybe tag link with [text, audio, video, image]
+import link works like firefox readability, converts html to markdown, removes extra crap
+includes link to original somewhere (top or bottom)
+content that is embedded is favoured over content that links to external sites (by the value function)
+
+cookie user_counter
+cookie freshness
+link get /[?after=0/20/40/60] use freshness
+link get /post/.../#comment-id use freshness
+form get /search/.../[&after=0/20/40/60] use freshness
+form post /submit_post?text=... use user_counter
+form post /submit_comment?post_id=...[&comment_id=...]&text=... use user_counter
+form post /submit_upvote?post_id=...[&comment_id=...]
+plain old http api, great for bots
+easy command line integration
+
+part of the encouragement to embed media is that [image/video/audio] will show up in the link title, attracting more users
+count page views too
+go linter
+enshrine linking to social account
+maybe append to comment by replying to self
+embed media by default, dont allow changing link text, just shorten long links
+self sustaining in terms of cost and moderation
+efficient website, update everything on change, then a read is simple and fast, caching in the database
+no surveillance, no google/facebook tracking or advertising

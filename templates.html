@@ -7,19 +7,19 @@
 {{ define "posts-list" }}
     {{ range . }}
         <li>
-            <p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> some text here</p>
+            <p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ "some text here" }}</p>
         </li>
     {{ end }}
 {{ end }}
 {{ define "post" }}
-    <div class="post">
-        <div class="post-content">{{ .Html }}</div>
-        <p class="info">{{ .Username }}, {{ .Votes }} upvotes, at {{ .Time.Format "15:04 02-01-2006" }}</p>
+    <div class="post" id="{{ .Id }}">
+        <div class="post-content"><h1>{{ .Title }}</h1>{{ .Html }}</div>
+        <p class="info">{{ .Username }}, {{ .Votes }} upvotes, {{ human_time .Time }}<br/>
         <a href="javascript:;" class="actions" onclick="toggle_summary(this);">summary</a>
+        <a href="/post/{{ .Id }}" class="actions">link</a>
         <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
-        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
+        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a></p>
         {{ if .Comments }}
-            <br/>
             <br/>
             <span class="line">// ----------------</span>
             <br/>
@@ -38,11 +38,11 @@
                 <br/>
                 <div class="comment" id="{{ .Id }}">
                     <div class="comment-content">{{ .Html }}</div>
-                    <p class="info">{{ .Username }}, {{ .Votes }} upvotes, at {{ .Time.Format "15:04 02-01-2006" }}</p>
+                    <p class="info">{{ .Username }}, {{ .Votes }} upvotes, {{ human_time .Time }}<br/>
                     <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
+                    <a href="#{{ .Id }}" class="actions">link</a>
                     <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
-                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a>
-                    <a href="#{{ .Id }}" class="actions">permalink</a>
+                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a></p>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}
@@ -72,13 +72,6 @@
             <nav>
                 <br/>
                 <h2>freshness</h2>
-                <select onchange="set_freshness(0);">
-                    <option value="0">freshest</option>
-                    <option value="1">fresher</option>
-                    <option value="2">both</option>
-                    <option value="3">higher</option>
-                    <option value="4">highest</option>
-                </select>
                 <a href="javascript:;" onclick="set_freshness(0);">freshest</a>
                 <a href="javascript:;" onclick="set_freshness(1);">fresher</a>
                 <a href="javascript:;" onclick="set_freshness(2);">both</a>
@@ -87,14 +80,14 @@
                 <br/><br/>
 
                 <h2>search</h2>
-                <form id="search" autocomplete="on" enc="multipart/form-data" action="/" method="get">
+                <form id="search" autocomplete="on" action="/" method="get">
                     <input name="search" type="search" required placeholder="#hashtag search query" title="">
                     <input type="submit" value="search">
                 </form>
                 <br/>
 
                 <h2>submit post</h2>
-                <form id="post" autocomplete="off" enc="multipart/form-data" action="/submit_post" method="post">
+                <form id="post" autocomplete="off" enctype="multipart/form-data" action="/submit_post" method="post">
                     <input type="text" name="title" required placeholder="title" title="">
                     <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
@@ -108,7 +101,7 @@
                 <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                 <a href="https://github.com/paddygord/commune">source</a></p>
 
-                <form id="comment" autocomplete="off" enc="multipart/form-data" action="/submit_comment" method="post">
+                <form id="comment" autocomplete="off" enctype="multipart/form-data" action="/submit_comment" method="post">
                     <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune#format">formatting</a>
@@ -117,7 +110,7 @@
                     <input name="comment_id" type="hidden" value="">
                 </form>
 
-                <form id="upvote" autocomplete="off" enc="multipart/form-data" action="/submit_upvote" method="post">
+                <form id="upvote" autocomplete="off" enctype="multipart/form-data" action="/submit_upvote" method="post">
                     <input name="post_id" type="hidden" value="">
                     <input name="comment_id" type="hidden" value="">
                 </form>

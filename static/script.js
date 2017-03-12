@@ -2,6 +2,7 @@ function set_freshness(value) {
     var d = new Date();
     d.setTime(d.getTime() + (12*60*60*1000));
     document.cookie = "freshness=" + value + ";expires=" + d.toUTCString() + ";path=/;Secure";
+    location.reload(true)
 }
 
 function toggle_hidden(element) {
@@ -40,8 +41,8 @@ function toggle_comment(element) {
     var comment = document.querySelector("#comment")
     if (comment == element.nextSibling) {
         comment.style.display = null
-        e = document.querySelector("#post")
-        e.parentElement.insertBefore(comment, e.nextSibling)
+        post = document.querySelector(".post")
+        post.parentElement.insertBefore(comment, post.nextSibling)
     } else {
         comment.style.display = "initial"
         post = document.querySelector(".post")
@@ -52,5 +53,6 @@ function toggle_comment(element) {
             comment.comment_id.value = ""
         }
         element.parentElement.insertBefore(comment, element.nextSibling)
+        comment.text.focus()
     }
 }

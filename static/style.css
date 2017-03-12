@@ -62,9 +62,6 @@ textarea {
     margin-bottom: 4px;
     resize: vertical;
 }
-input[type="checkbox"] {
-    vertical-align: middle;
-}
 input[type="submit"] {
     background-color: #fbfbfb;
     width: 80px;
@@ -88,13 +85,15 @@ input[type="submit"] {
     height: 2em;
 }
 .comment > .comments {
-    margin-left: 2em;
+    margin-left: 1.5em;
 }
 .actions {
     color: #777777;
+    font-size: 12px;
 }
 .info {
     color: #777777;
+    font-size: 12px;
 }
 .line {
     color: #777777;
