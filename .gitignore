@@ -1,3 +1,2 @@
-*.pem
+res/
 scripts/set_ip.sh
-*.json

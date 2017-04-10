@@ -1,8 +1,24 @@
-have simple http for more links with progressive enhancement websocket for just request relevant HTML, cuts down on page renders
-but also have to recreate browser functionality, like passing cookies, handling cancelling/reloads, passing url parameters
-take posts/comments from http into json
-take upvotes from http into json
-write value function for posts and comments, use EWMA
+think about how to sort the comments
+sort only if depth is equal between consecutive pair
+could have an append only list of comments, and 5 sorted indexes pointing to their id, as in posts
+need to have indexes of comments, so as not to replicate the posts 5 times
+could have recursive indexes? with a flat array of posts/comments
+go recursive sort
+    dont need a recursive sort because we only need to sort at one level, and we get the exact id from the input request
+too many reports stops image/media inlining
+reply to comment sends direct parent id, rather than search through all comments looking for it
+no fast id lookup with recursive indexes
+no fast id lookup with any of the sorted indexes, would have to loop through them all to find the id and sort
+need another second index for the sorted indexes, which takes an id and points to the place in the sorted index
+comments need to be "unflattened" from the freshness indexes, by just having a flat array for comments and freshness indexes
+
+posts: id_index -> freshness_indexes -> posts
+comments: id_index (per post) -> freshness_indexes (per post) -> comments (per post)
+or
+combined comment and post indexes
+depends wether we want to possibly have comments in the top level results
+
+
 recentness shouldnt be linear, make it logarithmic maybe
 also value shouldnt be linear
 embedding links/media in posts/comments
@@ -12,14 +28,11 @@ trending topics, on submit post/comment, add to EWMA
 similar topics, on submit pos/comment, add to matrix of EWMA
 
 database can be made efficient by precomputing everything as it comes in, so the search/sort only has to search a single index
-the value of a post/comment is a function of votes (agrees), the values of replies, and another function of the length, number of links, "quality" metric
-rate limit comments/posts/upvotes per user id
-media backed by IPFS, text on server
-use noembed for everything, maybe have to write/run a ipfs->oembed gateway for uploaded content
+the value of a post/comment is a function of the values of replies, and another function of the length, number of links, "quality" metric
 maybe tag link with [text, audio, video, image]
-import link works like firefox readability, converts html to markdown, removes extra crap
-includes link to original somewhere (top or bottom)
+import link works like firefox readability, converts html to markdown, removes extra crap, includes link to original somewhere
 content that is embedded is favoured over content that links to external sites (by the value function)
+part of the encouragement to embed media is that [image/video/audio] will show up in the link title, attracting more users
 
 cookie user_counter
 cookie freshness
@@ -28,13 +41,10 @@ link get /post/.../#comment-id use freshness
 form get /search/.../[&after=0/20/40/60] use freshness
 form post /submit_post?text=... use user_counter
 form post /submit_comment?post_id=...[&comment_id=...]&text=... use user_counter
-form post /submit_upvote?post_id=...[&comment_id=...]
 plain old http api, great for bots
 easy command line integration
 
-part of the encouragement to embed media is that [image/video/audio] will show up in the link title, attracting more users
 count page views too
-go linter
 enshrine linking to social account
 maybe append to comment by replying to self
 embed media by default, dont allow changing link text, just shorten long links

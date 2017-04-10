@@ -5,14 +5,13 @@
 body {
     font-size: 14px;
     font-family: monospace;
-    line-height: 1.4;
+    line-height: 1.3;
     width: calc(854px + 400px + 20px);
     margin: 0px auto;
 }
 a {
     text-decoration: none;
     color: #0645ad;
-    cursor: pointer;
 }
 a:hover {
     text-decoration: underline;
@@ -27,11 +26,11 @@ nav h2 {
     color: #333333;
 }
 header, section, nav {
-    float: left;
     box-sizing: border-box;
 }
-section {
+header, section {
     width: 854px;
+    float: left;
 }
 nav {
     margin-left: 20px;
@@ -49,26 +48,21 @@ input[type="search"], input[type="submit"], input[type="text"], textarea {
     font-size: 100%;
     width: 100%;
     padding: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     box-sizing: border-box;
     background: #f4f4f4;
     border: none;
 }
-input[type="search"] {
-    margin-top: 4px;
-    margin-bottom: 4px;
-}
 textarea {
-    margin-top: 4px;
-    margin-bottom: 4px;
     resize: vertical;
 }
 input[type="submit"] {
-    background-color: #fbfbfb;
     width: 80px;
     float: right;
     cursor: pointer;
 }
-#comment, #upvote {
+#comment {
     display: none;
 }
 
@@ -77,7 +71,6 @@ input[type="submit"] {
     font-family: sans-serif;
 }
 .posts {
-    list-style: none;
     color: #777777;
 }
 .post-link {
@@ -87,11 +80,7 @@ input[type="submit"] {
 .comment > .comments {
     margin-left: 1.5em;
 }
-.actions {
-    color: #777777;
-    font-size: 12px;
-}
-.info {
+.actions, .info {
     color: #777777;
     font-size: 12px;
 }

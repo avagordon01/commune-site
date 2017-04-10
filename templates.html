@@ -1,31 +1,28 @@
 {{ define "posts" }}
     <ol class="posts" start="0">
-        {{ template "posts-list" .Posts }}
+        {{ range .Posts }}
+            <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ "some text here" }}</p></li>
+        {{ end }}
     </ol>
-    <a href="?after={{ .After }}">more</a>
-{{ end }}
-{{ define "posts-list" }}
-    {{ range . }}
-        <li>
-            <p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ "some text here" }}</p>
-        </li>
+    {{ if .After }}
+        <a href="?after={{ .After }}">more</a>
     {{ end }}
 {{ end }}
 {{ define "post" }}
     <div class="post" id="{{ .Id }}">
         <div class="post-content"><h1>{{ .Title }}</h1>{{ .Html }}</div>
-        <p class="info">{{ .Username }}, {{ .Votes }} upvotes, {{ human_time .Time }}<br/>
+        <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
         <a href="javascript:;" class="actions" onclick="toggle_summary(this);">summary</a>
-        <a href="/post/{{ .Id }}" class="actions">link</a>
-        <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
-        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a></p>
+        <a href="/post/{{ .Id }}#" class="actions">link</a>
+        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
+        <br/>
+        <span class="line">// ----------------</span>
+        <br/>
         {{ if .Comments }}
-            <br/>
-            <span class="line">// ----------------</span>
-            <br/>
             {{ template "comment" .Comments }}
         {{ else }}
             <div class="comments">
+                <br/>
                 <p>no comments yet</p>
             </div>
         {{ end }}
@@ -38,11 +35,10 @@
                 <br/>
                 <div class="comment" id="{{ .Id }}">
                     <div class="comment-content">{{ .Html }}</div>
-                    <p class="info">{{ .Username }}, {{ .Votes }} upvotes, {{ human_time .Time }}<br/>
+                    <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
                     <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
                     <a href="#{{ .Id }}" class="actions">link</a>
-                    <a href="javascript:;" class="actions" onclick="toggle_upvote(this);">upvote</a>
-                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a></p>
+                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}
@@ -57,13 +53,12 @@
             <title>{{ .Title }}</title>
             <link rel="stylesheet" type="text/css" href="/static/style.css"/>
             <script type="text/javascript" src="/static/script.js"></script>
+            <link rel="icon" type="image/png" href="/static/icon.png">
         </head>
         <body>
             <header>
                 <br/>
-                <h1>
-                    <a href="/">commune</a>
-                </h1>
+                <h1><a href="/">commune</a></h1>
                 <br/>
                 <span class="line">// ----------------</span>
                 <br/>
@@ -72,12 +67,14 @@
             <nav>
                 <br/>
                 <h2>freshness</h2>
-                <a href="javascript:;" onclick="set_freshness(0);">freshest</a>
-                <a href="javascript:;" onclick="set_freshness(1);">fresher</a>
-                <a href="javascript:;" onclick="set_freshness(2);">both</a>
-                <a href="javascript:;" onclick="set_freshness(3);">higher</a>
-                <a href="javascript:;" onclick="set_freshness(4);">highest</a>
-                <br/><br/>
+                <p>
+                    <a href="javascript:;" onclick="set_freshness(0);">freshest</a>
+                    <a href="javascript:;" onclick="set_freshness(1);">fresher</a>
+                    <a href="javascript:;" onclick="set_freshness(2);">both</a>
+                    <a href="javascript:;" onclick="set_freshness(3);">higher</a>
+                    <a href="javascript:;" onclick="set_freshness(4);">highest</a>
+                </p>
+                <br/>
 
                 <h2>search</h2>
                 <form id="search" autocomplete="on" action="/" method="get">
@@ -97,20 +94,17 @@
                 <br/>
 
                 <h2>about commune</h2>
-                <p>commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
-                <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-                <a href="https://github.com/paddygord/commune">source</a></p>
+                <p>
+                    commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
+                    <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                    <a href="https://github.com/paddygord/commune">source</a>
+                </p>
 
                 <form id="comment" autocomplete="off" enctype="multipart/form-data" action="/submit_comment" method="post">
                     <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune#format">formatting</a>
                     <input type="submit" value="reply">
-                    <input name="post_id" type="hidden" value="">
-                    <input name="comment_id" type="hidden" value="">
-                </form>
-
-                <form id="upvote" autocomplete="off" enctype="multipart/form-data" action="/submit_upvote" method="post">
                     <input name="post_id" type="hidden" value="">
                     <input name="comment_id" type="hidden" value="">
                 </form>

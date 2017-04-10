@@ -25,18 +25,6 @@ function toggle_hidden(element) {
     }
 }
 
-function toggle_upvote(element) {
-    var upvote = document.querySelector("#upvote")
-    post = document.querySelector(".post")
-    upvote.post_id.value = post.id
-    if (element.parentElement != post) {
-        upvote.comment_id.value = element.parentElement.id
-    } else {
-        upvote.comment_id.value = ""
-    }
-    upvote.submit();
-}
-
 function toggle_comment(element) {
     var comment = document.querySelector("#comment")
     if (comment == element.nextSibling) {
