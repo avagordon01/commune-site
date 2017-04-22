@@ -1,7 +1,7 @@
 {{ define "posts" }}
-    <ol class="posts" start="0">
+    <ol class="posts" start="{{ .Start }} ">
         {{ range .Posts }}
-            <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ "some text here" }}</p></li>
+            <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
         {{ end }}
     </ol>
     {{ if .After }}
@@ -12,7 +12,6 @@
     <div class="post" id="{{ .Id }}">
         <div class="post-content"><h1>{{ .Title }}</h1>{{ .Html }}</div>
         <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
-        <a href="javascript:;" class="actions" onclick="toggle_summary(this);">summary</a>
         <a href="/post/{{ .Id }}#" class="actions">link</a>
         <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
         <br/>
@@ -68,11 +67,15 @@
                 <br/>
                 <h2>freshness</h2>
                 <p>
-                    <a href="javascript:;" onclick="set_freshness(0);">freshest</a>
-                    <a href="javascript:;" onclick="set_freshness(1);">fresher</a>
-                    <a href="javascript:;" onclick="set_freshness(2);">both</a>
-                    <a href="javascript:;" onclick="set_freshness(3);">higher</a>
-                    <a href="javascript:;" onclick="set_freshness(4);">highest</a>
+                    
+                    <a href="javascript:;" {{ if eq .Freshness 0 }} class="grey" {{ end }} onclick="set_freshness(0);">freshest</a>
+                    <a href="javascript:;" {{ if eq .Freshness 1 }} class="grey" {{ end }} onclick="set_freshness(1);">fresher</a>
+                    <a href="javascript:;" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);">both</a>
+                    <a href="javascript:;" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);">higher</a>
+                    <a href="javascript:;" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);">highest</a>
+                    <br/>
+                    <a href="javascript:;" onclick="set_nested(true);">nested</a>
+                    <a href="javascript:;" onclick="set_nested(false);">flat</a>
                 </p>
                 <br/>
 
@@ -88,7 +91,7 @@
                     <input type="text" name="title" required placeholder="title" title="">
                     <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-                    <a href="https://github.com/paddygord/commune#format">formatting</a>
+                    <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
                     <input type="submit" value="post">
                 </form>
                 <br/>
@@ -97,13 +100,13 @@
                 <p>
                     commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-                    <a href="https://github.com/paddygord/commune">source</a>
+                    <a href="https://github.com/paddygord/commune">source code</a>
                 </p>
 
                 <form id="comment" autocomplete="off" enctype="multipart/form-data" action="/submit_comment" method="post">
                     <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-                    <a href="https://github.com/paddygord/commune#format">formatting</a>
+                    <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
                     <input type="submit" value="reply">
                     <input name="post_id" type="hidden" value="">
                     <input name="comment_id" type="hidden" value="">

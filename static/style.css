@@ -70,12 +70,31 @@ input[type="submit"] {
 .post-content, .comment-content {
     font-family: sans-serif;
 }
+.post-content *, .comment-content * {
+    max-width: 100%;
+}
+code {
+    margin: 4px 0px;
+    display: inline-block;
+    font-family: monospace;
+    background: #e0e0e0;
+}
+table {
+    margin: 4px 0px;
+}
+table, th, td {
+    padding: 4px;
+    border-collapse: collapse;
+    border: 1px solid #aaaaaa;
+}
 .posts {
     color: #777777;
 }
 .post-link {
+    vertical-align: top;
     display: inline-block;
-    height: 2em;
+    line-height: 2ex;
+    height: 4ex;
 }
 .comment > .comments {
     margin-left: 1.5em;
@@ -83,6 +102,9 @@ input[type="submit"] {
 .actions, .info {
     color: #777777;
     font-size: 12px;
+}
+.grey {
+    color: #777777;
 }
 .line {
     color: #777777;

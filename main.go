@@ -19,7 +19,7 @@ type Post struct {
 	Title        string
 	Snippet      string
 	Time         time.Time
-	Votes        uint64
+	Value        float64
 	Username     string
 	Html         template.HTML
 	CommentCount uint64
@@ -29,16 +29,16 @@ type Post struct {
 type Comment struct {
 	Id       uint64
 	Time     time.Time
-	Votes    uint64
+	Value    float64
 	Username string
 	Html     template.HTML
 	Comments []Comment
 }
 
 type Page struct {
-	After   uint64
 	Title   template.HTML
 	Content template.HTML
+    Freshness uint64
 }
 
 type Users struct {
@@ -47,7 +47,6 @@ type Users struct {
 }
 
 type Names struct {
-	Salt       uint64
 	Animals    []string
 	Colours    []string
 	Adjectives []string
@@ -62,7 +61,7 @@ var (
 )
 
 func value(freshness float64, post Post) float64 {
-	return float64(post.Votes) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
+	return float64(post.Value) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
 }
 
 func compare(freshness float64) func(i, j int) bool {
@@ -110,13 +109,12 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
-	mux.HandleFunc("/search", hsts(fresh_cookie(search)))
 	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
+    mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
 	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
 	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))
 
-	srv := &http.Server{Addr: ":443", Handler: mux}
 	go func() {
 		err = http.Serve(autocert.NewListener("commune.is"), mux)
 		if err != nil {
@@ -126,7 +124,6 @@ func main() {
 	close := make(chan os.Signal)
 	signal.Notify(close, os.Interrupt, syscall.SIGTERM)
 	<-close
-	srv.Close()
 
 	f, err = os.OpenFile("res/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
