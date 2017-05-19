@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/blevesearch/bleve"
 	"golang.org/x/crypto/acme/autocert"
 	"html/template"
 	"log"
@@ -36,9 +37,9 @@ type Comment struct {
 }
 
 type Page struct {
-	Title   template.HTML
-	Content template.HTML
-    Freshness uint64
+	Title     template.HTML
+	Content   template.HTML
+	Freshness uint64
 }
 
 type Users struct {
@@ -59,6 +60,7 @@ var (
 	users Users
 	names Names
 )
+var text_index bleve.Index
 
 func value(freshness float64, post Post) float64 {
 	return float64(post.Value) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
@@ -107,10 +109,15 @@ func main() {
 	}
 	update_indices()
 
+	text_index, err = bleve.Open("res/search.bleve")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
 	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
-    mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
+	mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
 	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
 	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))

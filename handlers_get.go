@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"github.com/blevesearch/bleve"
 	"github.com/dustin/go-humanize"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -23,15 +25,18 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	if err != nil {
 		after = uint64(0)
 	}
-	type PageAfter struct {
+	input := struct {
 		Posts []Post
 		After uint64
-        Start uint64
-	}
-	input := PageAfter{
-        Start: after,
+        Before uint64
+		Start uint64
+	}{
+		Start: after,
 		After: after + 20,
 	}
+    if int64(after)-20 >= 0 {
+        input.Before = after - 20
+    }
 	if after+20 >= uint64(len(index[freshness])) {
 		input.After = 0
 	}
@@ -51,9 +56,9 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		pusher.Push("static/icon.png", nil)
 	}
 	err = templates.ExecuteTemplate(w, "main", Page{
-		Title:   template.HTML("commune"),
-		Content: template.HTML(content.String()),
-        Freshness: freshness,
+		Title:     template.HTML("commune"),
+		Content:   template.HTML(content.String()),
+		Freshness: freshness,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,9 +96,9 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		pusher.Push("static/icon.png", nil)
 	}
 	err = templates.ExecuteTemplate(w, "main", Page{
-		Title:   template.HTML(post.Title),
-		Content: template.HTML(content.String()),
-        Freshness: freshness,
+		Title:     template.HTML(post.Title),
+		Content:   template.HTML(content.String()),
+		Freshness: freshness,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,4 +108,57 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 }
 
 func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
+	templates, err := template.New("").
+		Funcs(template.FuncMap{
+			"human_time": humanize.Time,
+		}).
+		ParseGlob("templates.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	search_query := r.FormValue("query")
+	query := bleve.NewMatchQuery(search_query)
+	search_req := bleve.NewSearchRequest(query)
+	search_res, err := text_index.Search(search_req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(search_res)
+	after := uint64(0)
+	results := struct {
+		Query   string
+		Results []Post
+		After   uint64
+        Before uint64
+		Start   uint64
+	}{
+		Query:   search_query,
+		Results: []Post{posts[0], posts[1]},
+		After:   after + 20,
+		Start:   after,
+	}
+	var content bytes.Buffer
+	err = templates.ExecuteTemplate(&content, "search", results)
+	if err != nil {
+		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	pusher, ok := w.(http.Pusher)
+	if ok {
+		pusher.Push("static/style.css", nil)
+		pusher.Push("static/script.js", nil)
+		pusher.Push("static/icon.png", nil)
+	}
+	err = templates.ExecuteTemplate(w, "main", Page{
+		Title:     template.HTML("\"" + search_query + "\""),
+		Content:   template.HTML(content.String()),
+		Freshness: freshness,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

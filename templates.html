@@ -1,26 +1,28 @@
 {{ define "posts" }}
     <ol class="posts" start="{{ .Start }} ">
         {{ range .Posts }}
-            <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
+            <li><div class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</div></li>
         {{ end }}
     </ol>
-    {{ if .After }}
-        <a href="?after={{ .After }}">more</a>
+    {{ if ge .Before 0 }}
+        <a href="?after={{ .Before }}">prev</a>
+    {{ end }}
+    {{ if gt .After 0 }}
+        <a href="?after={{ .After }}">next</a>
     {{ end }}
 {{ end }}
 {{ define "post" }}
     <div class="post" id="{{ .Id }}">
-        <div class="post-content"><h1>{{ .Title }}</h1>{{ .Html }}</div>
+        <div class="post-content">{{ .Html }}</div>
         <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
         <a href="/post/{{ .Id }}#" class="actions">link</a>
         <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
         <br/>
-        <span class="line">// ----------------</span>
-        <br/>
+        <p class="line">// ----------------</p>
         {{ if .Comments }}
             {{ template "comment" .Comments }}
         {{ else }}
-            <div class="comments">
+            <div>
                 <br/>
                 <p>no comments yet</p>
             </div>
@@ -44,6 +46,30 @@
         </div>
     {{ end }}
 {{ end }}
+{{ define "search" }}
+    <p>search results for "{{ .Query }}"</p>
+    <br/>
+    <p class="line">// ----------------</p>
+    <br/>
+    {{ if .Results }}
+        <ol class="posts" start="{{ .Start }} ">
+            {{ range .Results }}
+                <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
+            {{ end }}
+        </ol>
+        {{ if .Before }}
+            <a href="?query={{ .Query }}&after={{ .Before }}">prev</a>
+        {{ end }}
+        {{ if .After }}
+            <a href="?query={{ .Query }}&after={{ .After }}">next</a>
+        {{ end }}
+    {{ else }}
+        <div>
+            <br/>
+            <p>no results</p>
+        </div>
+    {{ end }}
+{{ end }}
 {{ define "main" }}
     <!DOCTYPE html>
     <html>
@@ -59,8 +85,7 @@
                 <br/>
                 <h1><a href="/">commune</a></h1>
                 <br/>
-                <span class="line">// ----------------</span>
-                <br/>
+                <p class="line">// ----------------</p>
                 <br/>
             </header>
             <nav>
@@ -73,23 +98,21 @@
                     <a href="javascript:;" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);">both</a>
                     <a href="javascript:;" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);">higher</a>
                     <a href="javascript:;" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);">highest</a>
-                    <br/>
-                    <a href="javascript:;" onclick="set_nested(true);">nested</a>
-                    <a href="javascript:;" onclick="set_nested(false);">flat</a>
                 </p>
                 <br/>
 
                 <h2>search</h2>
-                <form id="search" autocomplete="on" action="/" method="get">
-                    <input name="search" type="search" required placeholder="#hashtag search query" title="">
+                <form id="search" autocomplete="on" action="/search/" method="get">
+                    <input name="query" type="search" required placeholder="#hashtag search query" title="">
                     <input type="submit" value="search">
                 </form>
                 <br/>
 
                 <h2>submit post</h2>
-                <form id="post" autocomplete="off" enctype="multipart/form-data" action="/submit_post" method="post">
-                    <input type="text" name="title" required placeholder="title" title="">
-                    <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
+                <form id="post" autocomplete="on" enctype="multipart/form-data" action="/submit_post" method="post">
+                    <textarea name="text" rows="12" required placeholder="write the post text here" title=""># title here
+                    
+post text here, see the formatting guide for help</textarea>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
                     <input type="submit" value="post">
@@ -103,7 +126,7 @@
                     <a href="https://github.com/paddygord/commune">source code</a>
                 </p>
 
-                <form id="comment" autocomplete="off" enctype="multipart/form-data" action="/submit_comment" method="post">
+                <form id="comment" autocomplete="on" enctype="multipart/form-data" action="/submit_comment" method="post">
                     <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                     <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                     <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>

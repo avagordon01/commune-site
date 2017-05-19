@@ -70,6 +70,9 @@ input[type="submit"] {
 .post-content, .comment-content {
     font-family: sans-serif;
 }
+.post-content p, .comment-content p {
+    margin: 18px 0px;
+}
 .post-content *, .comment-content * {
     max-width: 100%;
 }
@@ -90,11 +93,14 @@ table, th, td {
 .posts {
     color: #777777;
 }
+li {
+    list-style-type: decimal-leading-zero;
+}
 .post-link {
-    vertical-align: top;
-    display: inline-block;
-    line-height: 2ex;
     height: 4ex;
+    line-height: 2ex;
+    overflow: hidden;
+    margin-bottom: 1ex;
 }
 .comment > .comments {
     margin-left: 1.5em;
