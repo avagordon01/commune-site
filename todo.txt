@@ -45,6 +45,7 @@ plain old http api, great for bots
 easy command line integration
 
 count page views too
+    count page views but not too many by using a timeout/rate limiter
 enshrine linking to social account
 maybe append to comment by replying to self
 embed media by default, dont allow changing link text, just shorten long links

@@ -71,7 +71,7 @@ input[type="submit"] {
     font-family: sans-serif;
 }
 .post-content p, .comment-content p {
-    margin: 18px 0px;
+    margin: 0px;
 }
 .post-content *, .comment-content * {
     max-width: 100%;

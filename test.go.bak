@@ -71,3 +71,13 @@ var posts []Post
 var comments [][]Comment
 var posts_index[5][]uint64
 var comments_index[5][][]uint64
+
+have an immutable array of posts and comments, append only
+have the freshness indexes store an index into these arrays
+freshness index needs to be kept sorted, to slice posts/comments for rendering
+freshness index also needs to be fast find and insert, for commenting
+when you render the page, you have the information about the ancestors of the comment
+maybe this is the best we can do, the only thing that wont change is the list of ancestors
+but we would still have to search through the children at each level
+
+maybe if we have the perfect db architecture we wont need huge complex caches... maybe

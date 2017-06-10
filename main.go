@@ -115,11 +115,11 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", hsts(fresh_cookie(home)))
-	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
-	mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
-	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
-	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
+	mux.HandleFunc("/", log_req(hsts(fresh_cookie(home))))
+	mux.HandleFunc("/post/", log_req(hsts(fresh_cookie(post))))
+	mux.HandleFunc("/search/", log_req(hsts(fresh_cookie(search))))
+	mux.HandleFunc("/submit_post", log_req(hsts(user_cookie(submit_post))))
+	mux.HandleFunc("/submit_comment", log_req(hsts(user_cookie(submit_comment))))
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))
 
 	go func() {
