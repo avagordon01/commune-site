@@ -1,0 +1,35 @@
+{{ define "content" }}
+    <div class="post" id="{{ .Id }}">
+        <div class="post-content">{{ .Html }}</div>
+        <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
+        <a href="/post/{{ .Id }}#" class="actions">link</a>
+        <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
+        <br/>
+        <p class="line">// ----------------</p>
+        {{ if .Comments }}
+            {{ template "comment" .Comments }}
+        {{ else }}
+            <div>
+                <br/>
+                <p>no comments yet</p>
+            </div>
+        {{ end }}
+    </div>
+{{ end }}
+{{ define "comment" }}
+    {{ with . }}
+        <div class="comments">
+            {{ range . }}
+                <br/>
+                <div class="comment" id="{{ .Id }}">
+                    <div class="comment-content">{{ .Html }}</div>
+                    <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
+                    <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
+                    <a href="#{{ .Id }}" class="actions">link</a>
+                    <a href="javascript:;" class="actions" onclick="toggle_comment(this);">reply</a><br/>
+                    {{ template "comment" .Comments }}
+                </div>
+            {{ end }}
+        </div>
+    {{ end }}
+{{ end }}

@@ -1,3 +1,4 @@
 go install || exit 1
-sudo setcap 'cap_net_bind_service=+ep' ~/go/bin/commune
-~/go/bin/commune
+pkill commune
+sudo /usr/bin/setcap cap_net_bind_service=+ep /srv/go/bin/commune
+$GOPATH/bin/commune &>log.txt & disown %

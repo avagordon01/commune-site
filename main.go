@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/blevesearch/bleve"
 	"golang.org/x/crypto/acme/autocert"
+    "github.com/dustin/go-humanize"
 	"html/template"
 	"log"
 	"math"
@@ -38,7 +39,7 @@ type Comment struct {
 
 type Page struct {
 	Title     template.HTML
-	Content   template.HTML
+	Content   interface{}
 	Freshness uint64
 }
 
@@ -59,8 +60,11 @@ var (
 	index [5][]uint64
 	users Users
 	names Names
+    templates map[string]*template.Template
 )
 var text_index bleve.Index
+
+const page_length uint64 = 100
 
 func value(freshness float64, post Post) float64 {
 	return float64(post.Value) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
@@ -113,6 +117,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+    func_map := template.FuncMap{
+        "human_time": humanize.Time,
+    }
+    templates = make(map[string]*template.Template)
+    templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
+    templates["home.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/home.html"))
+    templates["post.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/post.html"))
+    templates["search.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/search.html"))
+    log.Println(templates["base.html"].DefinedTemplates())
+    log.Println(templates["home.html"].DefinedTemplates())
+    log.Println(templates["post.html"].DefinedTemplates())
+    log.Println(templates["search.html"].DefinedTemplates())
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", log_req(hsts(fresh_cookie(home))))

@@ -103,7 +103,19 @@ func get_file_embed(embed_url string) string {
 func render_markdown(markdown_raw string) string {
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(0, "", "").(*blackfriday.Html)}
 	markdown_san := string(html.EscapeString(strings.Replace(markdown_raw, "\r", "\n", -1)))
-	html_raw := string(blackfriday.Markdown([]byte(markdown_san), renderer, 0))
+	html_raw := string(blackfriday.Markdown([]byte(markdown_san), renderer,
+        blackfriday.EXTENSION_NO_INTRA_EMPHASIS |                   // ignore emphasis markers inside words
+        blackfriday.EXTENSION_TABLES |                              // render tables
+        blackfriday.EXTENSION_FENCED_CODE |                         // render fenced code blocks
+        blackfriday.EXTENSION_AUTOLINK |                            // detect embedded URLs that are not explicitly marked
+        blackfriday.EXTENSION_STRIKETHROUGH |                       // strikethrough text using ~~test~~
+        blackfriday.EXTENSION_SPACE_HEADERS |                       // be strict about prefix header rules
+        blackfriday.EXTENSION_HARD_LINE_BREAK |                     // translate newlines into line breaks
+        blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK |          // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
+        blackfriday.EXTENSION_HEADER_IDS |                          // specify header IDs  with {#id}
+        blackfriday.EXTENSION_AUTO_HEADER_IDS |                     // Create the header ID from the text
+        blackfriday.EXTENSION_BACKSLASH_LINE_BREAK |                // translate trailing backslashes into line breaks
+        blackfriday.EXTENSION_DEFINITION_LISTS))                    // render definition lists
 	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
 	html_san := policy.Sanitize(html_raw)

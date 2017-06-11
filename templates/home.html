@@ -1,0 +1,13 @@
+{{ define "content" }}
+    <ol class="posts" start="{{ .Start }} ">
+        {{ range .Posts }}
+            <li><div class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</div></li>
+        {{ end }}
+    </ol>
+    {{ if ge .Before 0 }}
+        <a href="?after={{ .Before }}">prev</a>
+    {{ end }}
+    {{ if gt .After 0 }}
+        <a href="?after={{ .After }}">next</a>
+    {{ end }}
+{{ end }}
