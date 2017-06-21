@@ -19,11 +19,11 @@
             <br/>
             <h2>freshness</h2>
             <p>
-                <a href="javascript:;" {{ if eq .Freshness 0 }} class="grey" {{ end }} onclick="set_freshness(0);">freshest</a>
-                <a href="javascript:;" {{ if eq .Freshness 1 }} class="grey" {{ end }} onclick="set_freshness(1);">fresher</a>
-                <a href="javascript:;" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);">both</a>
-                <a href="javascript:;" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);">higher</a>
-                <a href="javascript:;" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);">highest</a>
+                <a href="?freshness=0" {{ if eq .Freshness 0 }} class="grey" {{ end }} onclick="set_freshness(0);return false;">freshest</a>
+                <a href="?freshness=1" {{ if eq .Freshness 1 }} class="grey" {{ end }} onclick="set_freshness(1);return false;">fresher</a>
+                <a href="?freshness=2" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);return false;">both</a>
+                <a href="?freshness=3" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);return false;">higher</a>
+                <a href="?freshness=4" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);return false;">highest</a>
             </p>
             <br/>
 
@@ -35,13 +35,13 @@
             <br/>
 
             <h2>submit post</h2>
-            <form id="post" autocomplete="on" enctype="multipart/form-data" action="/submit_post" method="post">
+            <form id="post" autocomplete="on" enctype="multipart/form-data" method="post">
                 <textarea name="text" rows="12" required placeholder="write the post text here" title=""># title here
                 
 post text here, see the formatting guide for help</textarea>
                 <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                 <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
-                <input type="submit" value="post">
+                <input type="submit" value="preview/post" formaction="/preview_post">
             </form>
             <br/>
 
@@ -52,11 +52,11 @@ post text here, see the formatting guide for help</textarea>
                 <a href="https://github.com/paddygord/commune">source code</a>
             </p>
 
-            <form id="comment" autocomplete="on" enctype="multipart/form-data" action="/submit_comment" method="post">
+            <form id="comment" autocomplete="on" enctype="multipart/form-data" method="post">
                 <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea><br/>
                 <a href="https://github.com/paddygord/commune#commune">user guide</a>,
                 <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
-                <input type="submit" value="reply">
+                <input type="submit" value="preview/reply" formaction="/preview_comment">
                 <input name="post_id" type="hidden" value="">
                 <input name="comment_id" type="hidden" value="">
             </form>

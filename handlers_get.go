@@ -14,17 +14,17 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		after = uint64(0)
 	}
 	input := struct {
-		Posts []Post
-		After uint64
-        Before uint64
-		Start uint64
+		Posts  []Post
+		After  uint64
+		Before uint64
+		Start  uint64
 	}{
 		Start: after,
 		After: after + page_length,
 	}
-    if int64(after)-int64(page_length) >= 0 {
-        input.Before = after - page_length
-    }
+	if int64(after)-int64(page_length) >= 0 {
+		input.Before = after - page_length
+	}
 	if after+page_length >= uint64(len(index[freshness])) {
 		input.After = 0
 	}
@@ -40,12 +40,6 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	pusher, ok := w.(http.Pusher)
-	if ok {
-		pusher.Push("static/style.css", nil)
-		pusher.Push("static/script.js", nil)
-		pusher.Push("static/icon.png", nil)
-	}
 }
 
 func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
@@ -54,7 +48,7 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.NotFound(w, r)
 		return
 	}
-    post := posts[post_id]
+	post := posts[post_id]
 	err = templates["post.html"].Execute(w, Page{
 		Title:     template.HTML(post.Title),
 		Content:   post,
@@ -64,21 +58,15 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	pusher, ok := w.(http.Pusher)
-	if ok {
-		pusher.Push("static/style.css", nil)
-		pusher.Push("static/script.js", nil)
-		pusher.Push("static/icon.png", nil)
-	}
 	users.page_counter++
 }
 
 func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	search_query := r.FormValue("query")
-    if search_query == "" {
-        home(w, r, freshness)
-        return
-    }
+	if search_query == "" {
+		home(w, r, freshness)
+		return
+	}
 	query := bleve.NewMatchQuery(search_query)
 	search_req := bleve.NewSearchRequest(query)
 	search_res, err := text_index.Search(search_req)
@@ -91,7 +79,7 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		Query   string
 		Results []Post
 		After   uint64
-        Before  uint64
+		Before  uint64
 		Start   uint64
 	}{
 		Query:   search_query,
@@ -107,11 +95,5 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	pusher, ok := w.(http.Pusher)
-	if ok {
-		pusher.Push("static/style.css", nil)
-		pusher.Push("static/script.js", nil)
-		pusher.Push("static/icon.png", nil)
 	}
 }

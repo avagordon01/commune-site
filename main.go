@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"github.com/blevesearch/bleve"
+	"github.com/dustin/go-humanize"
 	"golang.org/x/crypto/acme/autocert"
-    "github.com/dustin/go-humanize"
 	"html/template"
 	"log"
 	"math"
@@ -55,16 +55,16 @@ type Names struct {
 }
 
 var (
-	err   error
-	posts []Post
-	index [5][]uint64
-	users Users
-	names Names
-    templates map[string]*template.Template
+	err       error
+	posts     []Post
+	index     [5][]uint64
+	users     Users
+	names     Names
+	templates map[string]*template.Template
 )
 var text_index bleve.Index
 
-const page_length uint64 = 100
+const page_length uint64 = 50
 
 func value(freshness float64, post Post) float64 {
 	return float64(post.Value) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
@@ -118,34 +118,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-    func_map := template.FuncMap{
-        "human_time": humanize.Time,
-    }
-    templates = make(map[string]*template.Template)
-    templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
-    templates["home.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/home.html"))
-    templates["post.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/post.html"))
-    templates["search.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/search.html"))
-    log.Println(templates["base.html"].DefinedTemplates())
-    log.Println(templates["home.html"].DefinedTemplates())
-    log.Println(templates["post.html"].DefinedTemplates())
-    log.Println(templates["search.html"].DefinedTemplates())
+	func_map := template.FuncMap{
+		"human_time": humanize.Time,
+	}
+	templates = make(map[string]*template.Template)
+	templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
+	templates["home.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/home.html"))
+	templates["post.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/post.html"))
+	templates["search.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/search.html"))
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", log_req(hsts(fresh_cookie(home))))
-	mux.HandleFunc("/post/", log_req(hsts(fresh_cookie(post))))
-	mux.HandleFunc("/search/", log_req(hsts(fresh_cookie(search))))
-	mux.HandleFunc("/submit_post", log_req(hsts(user_cookie(submit_post))))
-	mux.HandleFunc("/submit_comment", log_req(hsts(user_cookie(submit_comment))))
+	mux.HandleFunc("/", hsts(fresh_cookie(home)))
+	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
+	mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
+	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
+	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))
 
-	go func() {
-		err = http.Serve(autocert.NewListener("commune.is"), mux)
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-	close := make(chan os.Signal)
+	go http.ListenAndServe(":80", http.HandlerFunc(https_redirect))
+	go http.Serve(autocert.NewListener("commune.is"), mux)
+	close := make(chan os.Signal, 2)
 	signal.Notify(close, os.Interrupt, syscall.SIGTERM)
 	<-close
 
@@ -158,4 +150,5 @@ func main() {
 		log.Println(err)
 	}
 	f.Close()
+	os.Exit(1)
 }

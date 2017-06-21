@@ -7,11 +7,22 @@ import (
 	"time"
 )
 
+func https_redirect(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "https://commune.is", http.StatusMovedPermanently)
+}
+
 func hsts(f func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		f(w, r)
 	})
+}
+
+func log_req(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//log.Println(r.Method, r.Proto, r.URL, r.Header, r.Body, r.RemoteAddr)
+		fn(w, r)
+	}
 }
 
 func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64)) http.HandlerFunc {
@@ -34,16 +45,14 @@ func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64))
 
 func fresh_cookie(f func(w http.ResponseWriter, r *http.Request, freshness uint64)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("freshness")
-		if err != nil {
-			cookie = &http.Cookie{Name: "freshness", Value: strconv.FormatUint(2, 10), Expires: time.Now().Add(time.Hour * 24), Secure: true}
-			http.SetCookie(w, cookie)
+		freshness := uint64(2)
+		if r.FormValue("freshness") != "" {
+			freshness, err = strconv.ParseUint(r.FormValue("freshness"), 10, 64)
+		} else if cookie, err := r.Cookie("freshness"); err == nil {
+			freshness, err = strconv.ParseUint(cookie.Value, 10, 64)
 		}
-		freshness, err := strconv.ParseUint(cookie.Value, 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		cookie := &http.Cookie{Value: strconv.FormatUint(freshness, 10), Expires: time.Now().Add(time.Hour * 24), Secure: true}
+		http.SetCookie(w, cookie)
 		f(w, r, freshness)
 	})
 }

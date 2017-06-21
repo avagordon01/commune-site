@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha1"
-    "strings"
 	"encoding/binary"
 	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/net/html"
@@ -10,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,32 +27,32 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	html_san := render_markdown(r.FormValue("text"))
 	snippet := bluemonday.StrictPolicy().Sanitize(html_san)
 
-    title := ""
-    var f func(*html.Node)
-    f = func(n *html.Node) {
-        if title != "" {
-            return
-        }
-        if n.Type == html.ElementNode && n.Data == "h1" {
-            if n.FirstChild.Type == html.TextNode && n.FirstChild.Data != "" {
-                title = n.FirstChild.Data
-                return
-            }
-        }
-        for c := n.FirstChild; c != nil; c = c.NextSibling {
-            f(c)
-        }
-    }
-    node, err := html.Parse(strings.NewReader(html_san))
-    if err != nil {
-        log.Fatal(err)
-    }
-    f(node)
+	title := ""
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if title != "" {
+			return
+		}
+		if n.Type == html.ElementNode && n.Data == "h1" {
+			if n.FirstChild.Type == html.TextNode && n.FirstChild.Data != "" {
+				title = n.FirstChild.Data
+				return
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	node, err := html.Parse(strings.NewReader(html_san))
+	if err != nil {
+		log.Fatal(err)
+	}
+	f(node)
 
-    snip_length := 200
-    if len(snippet) < snip_length {
-        snip_length = len(snippet)
-    }
+	snip_length := 200
+	if len(snippet) < snip_length {
+		snip_length = len(snippet)
+	}
 	post := Post{
 		Id:           uint64(len(posts)),
 		Title:        html.EscapeString(title),
