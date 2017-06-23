@@ -85,7 +85,7 @@ func update_indices() {
 }
 
 func main() {
-	f, err := os.Open("res/posts.json")
+	f, err := os.Open("db/posts.json")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func main() {
 	}
 	f.Close()
 
-	f, err = os.Open("res/names.json")
+	f, err = os.Open("db/names.json")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func main() {
 	}
 	update_indices()
 
-	text_index, err = bleve.Open("res/search.bleve")
+	text_index, err = bleve.Open("db/search.bleve")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func main() {
 	signal.Notify(close, os.Interrupt, syscall.SIGTERM)
 	<-close
 
-	f, err = os.OpenFile("res/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
+	f, err = os.OpenFile("db/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println(err)
 	}
@@ -150,5 +150,4 @@ func main() {
 		log.Println(err)
 	}
 	f.Close()
-	os.Exit(1)
 }

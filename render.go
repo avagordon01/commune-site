@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"regexp"
 )
 
 func get_oembed(embed_url string) interface{} {
@@ -98,6 +99,40 @@ func get_file_embed(embed_url string) string {
 	default:
 		return ""
 	}
+}
+
+func render_text(text_raw string) string {
+	re := regexp.MustCompile(
+		`(?P<block>` + "```.*```" + `)|` +
+		`(?P<url>https?://[^\s]+)|` +
+		`(?P<hashtag>#[_\pL\pN]+)|` +
+		`(?P<break>[\r\n]*)|` +
+        `(?P<normal>.)`)
+	re.Longest()
+    matches := re.FindAllStringSubmatch(text_raw, -1)
+    groupNames := re.SubexpNames()
+    var buffer bytes.Buffer
+    for _, match := range matches {
+        for groupIdx, group := range match {
+            name := groupNames[groupIdx]
+            if group == "" {
+                continue
+            }
+            switch name {
+                case "block":
+                    buffer.WriteString("<pre>" + group + "<pre>")
+                case "url":
+                    buffer.WriteString("<a href=\"" + group + "\">" + group + "</a>")
+                case "hashtag":
+                    buffer.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
+                case "break":
+                    buffer.WriteString("<br/>")
+                case "normal":
+                    buffer.WriteString(group)
+            }
+        }
+    }
+    return buffer.String()
 }
 
 func render_markdown(markdown_raw string) string {

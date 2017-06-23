@@ -76,9 +76,9 @@ input[type="submit"] {
 .post-content *, .comment-content * {
     max-width: 100%;
 }
-code {
+pre {
+    white-space: pre-wrap;
     margin: 4px 0px;
-    display: inline-block;
     font-family: monospace;
     background: #e0e0e0;
 }

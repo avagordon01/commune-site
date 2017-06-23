@@ -14,7 +14,7 @@ import (
 )
 
 func user_name(user_id uint64, post_id uint64) string {
-	value := user_id + uint64(len(posts))
+	value := user_id + post_id
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, value)
 	v := sha1.Sum(buf)
@@ -24,7 +24,7 @@ func user_name(user_id uint64, post_id uint64) string {
 }
 
 func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
-	html_san := render_markdown(r.FormValue("text"))
+	html_san := render_text(r.FormValue("text"))
 	snippet := bluemonday.StrictPolicy().Sanitize(html_san)
 
 	title := ""
@@ -76,7 +76,7 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
 }
 
 func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
-	html_san := render_markdown(r.FormValue("text"))
+	html_san := render_text(r.FormValue("text"))
 
 	post_id, err := strconv.ParseUint(r.FormValue("post_id"), 10, 64)
 	if err != nil {
