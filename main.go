@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/blevesearch/bleve"
+	"github.com/boltdb/bolt"
 	"github.com/dustin/go-humanize"
 	"golang.org/x/crypto/acme/autocert"
 	"html/template"
@@ -37,37 +38,20 @@ type Comment struct {
 	Comments []Comment
 }
 
-type Page struct {
-	Title     template.HTML
-	Content   interface{}
-	Freshness uint64
-}
-
-type Users struct {
-	user_counter uint64
-	page_counter uint64
-}
-
-type Names struct {
-	Animals    []string
-	Colours    []string
-	Adjectives []string
-}
-
 var (
-	err       error
-	posts     []Post
-	index     [5][]uint64
-	users     Users
-	names     Names
-	templates map[string]*template.Template
+	err          error
+	posts        []Post
+	index        [5][]uint64
+	user_counter uint64
+	templates    map[string]*template.Template
+	text_index   bleve.Index
+	db           bolt.DB
 )
-var text_index bleve.Index
 
 const page_length uint64 = 50
 
 func value(freshness float64, post Post) float64 {
-	return float64(post.Value) * math.Pow(0.75, -freshness*float64(post.Time.Unix()))
+	return float64(post.Value) * math.Pow(1.25, freshness*float64(post.Time.Unix()))
 }
 
 func compare(freshness float64) func(i, j int) bool {
@@ -85,21 +69,11 @@ func update_indices() {
 }
 
 func main() {
-	f, err := os.Open("db/posts.json")
+	f, err := os.Open("database/posts.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 	err = json.NewDecoder(f).Decode(&posts)
-	if err != nil {
-		log.Fatal(err)
-	}
-	f.Close()
-
-	f, err = os.Open("db/names.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.NewDecoder(f).Decode(&names)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,7 +87,7 @@ func main() {
 	}
 	update_indices()
 
-	text_index, err = bleve.Open("db/search.bleve")
+	text_index, err = bleve.Open("database/search.bleve")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -141,7 +115,7 @@ func main() {
 	signal.Notify(close, os.Interrupt, syscall.SIGTERM)
 	<-close
 
-	f, err = os.OpenFile("db/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
+	f, err = os.OpenFile("database/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println(err)
 	}

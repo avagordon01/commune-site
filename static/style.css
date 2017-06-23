@@ -112,6 +112,10 @@ li {
 .grey {
     color: #777777;
 }
-.line {
+hr {
+    border: 0;
+}
+hr:after {
+    content: "// ----------------";
     color: #777777;
 }

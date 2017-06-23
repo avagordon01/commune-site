@@ -8,28 +8,39 @@ import (
 	"strconv"
 )
 
+type Page struct {
+	Title     template.HTML
+	Content   interface{}
+	Freshness uint64
+}
+
 func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
-	after, err := strconv.ParseUint(r.FormValue("after"), 10, 64)
+	start, err := strconv.ParseUint(r.FormValue("start"), 10, 64)
 	if err != nil {
-		after = uint64(0)
+		start = uint64(0)
 	}
 	input := struct {
-		Posts  []Post
-		After  uint64
-		Before uint64
-		Start  uint64
+		Posts []Post
+		Start uint64
+		Next  uint64
+		Prev  uint64
 	}{
-		Start: after,
-		After: after + page_length,
+		Start: start,
 	}
-	if int64(after)-int64(page_length) >= 0 {
-		input.Before = after - page_length
+	if start > page_length {
+		input.Prev = start - page_length
+	} else if start <= page_length && start > 0 {
+		input.Prev = 0
+	} else {
+		input.Prev = start
 	}
-	if after+page_length >= uint64(len(index[freshness])) {
-		input.After = 0
+	if start+page_length < uint64(len(index[freshness])) {
+		input.Next = start + page_length
+	} else {
+		input.Next = start
 	}
-	for i := uint64(0); i+after < uint64(len(index[freshness])) && i < page_length; i++ {
-		input.Posts = append(input.Posts, posts[index[freshness][i+after]])
+	for i := start; i < uint64(len(index[freshness])) && i < start+page_length; i++ {
+		input.Posts = append(input.Posts, posts[index[freshness][i]])
 	}
 	err = templates["home.html"].Execute(w, Page{
 		Title:     template.HTML("commune"),
@@ -58,10 +69,13 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	users.page_counter++
 }
 
 func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
+	start, err := strconv.ParseUint(r.FormValue("start"), 10, 64)
+	if err != nil {
+		start = uint64(0)
+	}
 	search_query := r.FormValue("query")
 	if search_query == "" {
 		home(w, r, freshness)
@@ -74,18 +88,28 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		log.Fatal(err)
 	}
 	log.Println(search_res)
-	after := uint64(0)
 	results := struct {
 		Query   string
 		Results []Post
-		After   uint64
-		Before  uint64
 		Start   uint64
+		Next    uint64
+		Prev    uint64
 	}{
 		Query:   search_query,
 		Results: []Post{posts[0], posts[1]},
-		After:   after + page_length,
-		Start:   after,
+		Start:   start,
+	}
+	if start > page_length {
+		results.Prev = start - page_length
+	} else if start <= page_length && start > 0 {
+		results.Prev = 0
+	} else {
+		results.Prev = start
+	}
+	if start+page_length < uint64(len(results.Results)) {
+		results.Next = start + page_length
+	} else {
+		results.Next = start
 	}
 	err = templates["search.html"].Execute(w, Page{
 		Title:     template.HTML("\"" + search_query + "\""),

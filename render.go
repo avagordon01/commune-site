@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/dyatlov/go-readability"
-	"github.com/microcosm-cc/bluemonday"
+	//"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 	"golang.org/x/net/html"
 	"html/template"
@@ -13,9 +13,9 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
 )
 
 func get_oembed(embed_url string) interface{} {
@@ -104,58 +104,35 @@ func get_file_embed(embed_url string) string {
 func render_text(text_raw string) string {
 	re := regexp.MustCompile(
 		`(?P<block>` + "```.*```" + `)|` +
-		`(?P<url>https?://[^\s]+)|` +
-		`(?P<hashtag>#[_\pL\pN]+)|` +
-		`(?P<break>[\r\n]*)|` +
-        `(?P<normal>.)`)
+			`(?P<url>https?://[^\s]+)|` +
+			`(?P<hashtag>#[_\pL\pN]+)|` +
+			`(?P<break>[\r\n]*)|` +
+			`(?P<normal>.)`)
 	re.Longest()
-    matches := re.FindAllStringSubmatch(text_raw, -1)
-    groupNames := re.SubexpNames()
-    var buffer bytes.Buffer
-    for _, match := range matches {
-        for groupIdx, group := range match {
-            name := groupNames[groupIdx]
-            if group == "" {
-                continue
-            }
-            switch name {
-                case "block":
-                    buffer.WriteString("<pre>" + group + "<pre>")
-                case "url":
-                    buffer.WriteString("<a href=\"" + group + "\">" + group + "</a>")
-                case "hashtag":
-                    buffer.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
-                case "break":
-                    buffer.WriteString("<br/>")
-                case "normal":
-                    buffer.WriteString(group)
-            }
-        }
-    }
-    return buffer.String()
-}
-
-func render_markdown(markdown_raw string) string {
-	renderer := &renderer{Html: blackfriday.HtmlRenderer(0, "", "").(*blackfriday.Html)}
-	markdown_san := string(html.EscapeString(strings.Replace(markdown_raw, "\r", "\n", -1)))
-	html_raw := string(blackfriday.Markdown([]byte(markdown_san), renderer,
-		blackfriday.EXTENSION_NO_INTRA_EMPHASIS| // ignore emphasis markers inside words
-			blackfriday.EXTENSION_TABLES| // render tables
-			blackfriday.EXTENSION_FENCED_CODE| // render fenced code blocks
-			blackfriday.EXTENSION_AUTOLINK| // detect embedded URLs that are not explicitly marked
-			blackfriday.EXTENSION_STRIKETHROUGH| // strikethrough text using ~~test~~
-			blackfriday.EXTENSION_SPACE_HEADERS| // be strict about prefix header rules
-			blackfriday.EXTENSION_HARD_LINE_BREAK| // translate newlines into line breaks
-			blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK| // No need to insert an empty line to start a (code, quote, ordered list, unordered list) block
-			blackfriday.EXTENSION_HEADER_IDS| // specify header IDs  with {#id}
-			blackfriday.EXTENSION_AUTO_HEADER_IDS| // Create the header ID from the text
-			blackfriday.EXTENSION_BACKSLASH_LINE_BREAK| // translate trailing backslashes into line breaks
-			blackfriday.EXTENSION_DEFINITION_LISTS)) // render definition lists
-	policy := bluemonday.UGCPolicy()
-	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
-	html_san := policy.Sanitize(html_raw)
-	html_san = html_raw
-	return html_san
+	matches := re.FindAllStringSubmatch(text_raw, -1)
+	groupNames := re.SubexpNames()
+	var buffer bytes.Buffer
+	for _, match := range matches {
+		for groupIdx, group := range match {
+			name := groupNames[groupIdx]
+			if group == "" {
+				continue
+			}
+			switch name {
+			case "block":
+				buffer.WriteString("<pre>" + group + "<pre>")
+			case "url":
+				buffer.WriteString("<a href=\"" + group + "\">" + group + "</a>")
+			case "hashtag":
+				buffer.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
+			case "break":
+				buffer.WriteString("<br/>")
+			case "normal":
+				buffer.WriteString(group)
+			}
+		}
+	}
+	return buffer.String()
 }
 
 type renderer struct {

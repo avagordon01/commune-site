@@ -12,35 +12,25 @@ no fast id lookup with any of the sorted indexes, would have to loop through the
 need another second index for the sorted indexes, which takes an id and points to the place in the sorted index
 comments need to be "unflattened" from the freshness indexes, by just having a flat array for comments and freshness indexes
 
-posts: id_index -> freshness_indexes -> posts
-comments: id_index (per post) -> freshness_indexes (per post) -> comments (per post)
-or
-combined comment and post indexes
-depends wether we want to possibly have comments in the top level results
-
-
-recentness shouldnt be linear, make it logarithmic maybe
-also value shouldnt be linear
 embedding links/media in posts/comments
 previewing posts/comments
-reddit doesnt have preview, but you can edit your comment
 trending topics, on submit post/comment, add to EWMA
-similar topics, on submit pos/comment, add to matrix of EWMA
+related topics, on submit pos/comment, add to matrix of EWMA
 
 database can be made efficient by precomputing everything as it comes in, so the search/sort only has to search a single index
 the value of a post/comment is a function of the values of replies, and another function of the length, number of links, "quality" metric
-maybe tag link with [text, audio, video, image]
-import link works like firefox readability, converts html to markdown, removes extra crap, includes link to original somewhere
+maybe tag link with [text, audio, video, image, doc]
+import link works like firefox readability, converts html to text, removes extra crap, includes link to original somewhere
 content that is embedded is favoured over content that links to external sites (by the value function)
 part of the encouragement to embed media is that [image/video/audio] will show up in the link title, attracting more users
 
-cookie user_counter
+cookie user
 cookie freshness
-link get /[?after=0/20/40/60] use freshness
+link get /[?start=0/20/40/60] use freshness
 link get /post/.../#comment-id use freshness
-form get /search/.../[&after=0/20/40/60] use freshness
-form post /submit_post?text=... use user_counter
-form post /submit_comment?post_id=...[&comment_id=...]&text=... use user_counter
+form get /search/.../[&start=0/20/40/60] use freshness
+form post /submit_post?text=... use user
+form post /submit_comment?post_id=...[&comment_id=...]&text=... use user
 plain old http api, great for bots
 easy command line integration
 
@@ -52,20 +42,6 @@ embed media by default, dont allow changing link text, just shorten long links
 self sustaining in terms of cost and moderation
 efficient website, update everything on change, then a read is simple and fast, caching in the database
 no surveillance, no google/facebook tracking or advertising
-
-
-
-get_slice(start_id, length)
-get_post_and_comments(post_id)
-get_post_or_comment(item_id)
-insert_child(parent_id, child)
-
-use a db for the posts/comments, post_id/comment_id -> post/comment
-bucket of posts, each post is a bucket of comments
-bucket has unique, auto incrementing ids
-
-text_search returns slice of post/comment ids
-freshness indexes contain slices of sorted post/comment ids
 
 separate page for preview/submit post and comments
 also for javascript fallback, link usually does in-page form, but goes to out-of-page form if javascript disabled

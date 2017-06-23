@@ -18,20 +18,13 @@ func hsts(f func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	})
 }
 
-func log_req(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		//log.Println(r.Method, r.Proto, r.URL, r.Header, r.Body, r.RemoteAddr)
-		fn(w, r)
-	}
-}
-
 func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("user_id")
 		if err != nil {
 			rand_id := uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
 			cookie = &http.Cookie{Name: "user_id", Value: strconv.FormatUint(rand_id, 10), Expires: time.Unix(1<<63-1, 0), Secure: true, HttpOnly: true}
-			users.user_counter++
+			user_counter++
 			http.SetCookie(w, cookie)
 		}
 		user_id, err := strconv.ParseUint(cookie.Value, 10, 64)

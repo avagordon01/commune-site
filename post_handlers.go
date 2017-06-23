@@ -18,9 +18,9 @@ func user_name(user_id uint64, post_id uint64) string {
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, value)
 	v := sha1.Sum(buf)
-	return names.Adjectives[binary.LittleEndian.Uint16(v[0:2])%uint16(len(names.Adjectives))] +
-		names.Colours[binary.LittleEndian.Uint16(v[2:4])%uint16(len(names.Colours))] +
-		names.Animals[binary.LittleEndian.Uint16(v[4:6])%uint16(len(names.Animals))]
+	return adjectives[binary.LittleEndian.Uint16(v[0:2])%uint16(len(adjectives))] +
+		colours[binary.LittleEndian.Uint16(v[2:4])%uint16(len(colours))] +
+		animals[binary.LittleEndian.Uint16(v[4:6])%uint16(len(animals))]
 }
 
 func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {

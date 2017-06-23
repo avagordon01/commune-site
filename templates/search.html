@@ -1,24 +1,24 @@
 {{ define "content" }}
     {{ if .Results }}
         <p>search results for "{{ .Query }}"</p>
-        <br/>
-        <p class="line">// ----------------</p>
-        <br/>
+        <br>
+        <hr>
+        <br>
         <ol class="posts" start="{{ .Start }} ">
             {{ range .Results }}
                 <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
             {{ end }}
         </ol>
-        {{ if .Before }}
-            <a href="?query={{ .Query }}&after={{ .Before }}">prev</a>
+        {{ if ne .Prev .Start }}
+            <a href="?query={{ .Query }}&start={{ .Prev }}">prev</a>
         {{ end }}
-        {{ if .After }}
-            <a href="?query={{ .Query }}&after={{ .After }}">next</a>
+        {{ if ne .Next .Start }}
+            <a href="?query={{ .Query }}&start={{ .Start }}">next</a>
         {{ end }}
     {{ else }}
         <p>no results for "{{ .Query }}"</p>
-        <br/>
-        <p class="line">// ----------------</p>
-        <br/>
+        <br>
+        <hr>
+        <br>
     {{ end }}
 {{ end }}
