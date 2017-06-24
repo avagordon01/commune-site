@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/dyatlov/go-readability"
-	//"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday"
+	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/net/html"
 	"html/template"
 	"io/ioutil"
@@ -102,6 +101,7 @@ func get_file_embed(embed_url string) string {
 }
 
 func render_text(text_raw string) string {
+	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
 	re := regexp.MustCompile(
 		`(?P<block>` + "```.*```" + `)|` +
 			`(?P<url>https?://[^\s]+)|` +
@@ -109,9 +109,9 @@ func render_text(text_raw string) string {
 			`(?P<break>[\r\n]*)|` +
 			`(?P<normal>.)`)
 	re.Longest()
-	matches := re.FindAllStringSubmatch(text_raw, -1)
+	matches := re.FindAllStringSubmatch(text_san, -1)
 	groupNames := re.SubexpNames()
-	var buffer bytes.Buffer
+	var html_raw bytes.Buffer
 	for _, match := range matches {
 		for groupIdx, group := range match {
 			name := groupNames[groupIdx]
@@ -120,42 +120,34 @@ func render_text(text_raw string) string {
 			}
 			switch name {
 			case "block":
-				buffer.WriteString("<pre>" + group + "<pre>")
+				html_raw.WriteString("<pre>" + group + "<pre>")
 			case "url":
-				buffer.WriteString("<a href=\"" + group + "\">" + group + "</a>")
+				json := get_oembed(string(group)).(struct {
+					Error string
+					Html  template.HTML
+				})
+				embed := get_file_embed(string(group))
+				r_embed := get_readability(string(group))
+				if embed != "" {
+					html_raw.WriteString(embed)
+				} else if json.Error == "" && json.Html != "" {
+					html_raw.WriteString(string(json.Html))
+				} else if r_embed != "" {
+					html_raw.WriteString(r_embed)
+				} else {
+					html_raw.WriteString("<a href=\"" + group + "\">" + group + "</a>")
+				}
 			case "hashtag":
-				buffer.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
+				html_raw.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
 			case "break":
-				buffer.WriteString("<br/>")
+				html_raw.WriteString("<br/>")
 			case "normal":
-				buffer.WriteString(group)
+				html_raw.WriteString(group)
 			}
 		}
 	}
-	return buffer.String()
-}
-
-type renderer struct {
-	*blackfriday.Html
-}
-
-func (r *renderer) Image(out *bytes.Buffer, link []byte, title []byte, content []byte) {
-	json := get_oembed(string(link)).(struct {
-		Error string
-		Html  template.HTML
-	})
-	embed := get_file_embed(string(link))
-	r_embed := get_readability(string(link))
-	log.Println(r_embed)
-	if string(content) == "Embed" {
-		if embed != "" {
-			out.WriteString(embed)
-		} else if json.Error == "" && json.Html != "" {
-			out.WriteString(string(json.Html))
-		} else {
-			out.WriteString(r_embed)
-		}
-	} else if string(content) == "Image" {
-		out.WriteString(embed)
-	}
+	policy := bluemonday.UGCPolicy()
+	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
+	html_san := policy.Sanitize(html_raw.String())
+	return html_san
 }

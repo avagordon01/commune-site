@@ -70,7 +70,6 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	index[2] = append(index[2], post.Id)
 	index[3] = append(index[3], post.Id)
 	index[4] = append(index[4], post.Id)
-	update_indices()
 
 	http.Redirect(w, r, "/post/"+strconv.FormatUint(post.Id, 10), http.StatusSeeOther)
 }

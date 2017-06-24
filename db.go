@@ -7,8 +7,19 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"log"
+	"math"
 	"time"
 )
+
+func value(freshness float64, post Post) float64 {
+	return float64(post.Value) * math.Pow(1.25, freshness*float64(post.Time.Unix()))
+}
+
+func compare(freshness float64) func(i, j int) bool {
+	return func(i, j int) bool {
+		return value(freshness, posts[i]) < value(freshness, posts[j])
+	}
+}
 
 func insert_post(p Post) uint64 { return uint64(0) }
 

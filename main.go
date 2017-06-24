@@ -8,11 +8,9 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"html/template"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"os/signal"
-	"sort"
 	"syscall"
 	"time"
 )
@@ -50,24 +48,6 @@ var (
 
 const page_length uint64 = 50
 
-func value(freshness float64, post Post) float64 {
-	return float64(post.Value) * math.Pow(1.25, freshness*float64(post.Time.Unix()))
-}
-
-func compare(freshness float64) func(i, j int) bool {
-	return func(i, j int) bool {
-		return value(freshness, posts[i]) < value(freshness, posts[j])
-	}
-}
-
-func update_indices() {
-	sort.SliceStable(index[0], compare(0.0))
-	sort.SliceStable(index[1], compare(0.1))
-	sort.SliceStable(index[2], compare(0.2))
-	sort.SliceStable(index[3], compare(0.5))
-	sort.SliceStable(index[4], compare(1.0))
-}
-
 func main() {
 	f, err := os.Open("database/posts.json")
 	if err != nil {
@@ -85,7 +65,6 @@ func main() {
 			index[i][uint64(j)] = uint64(j)
 		}
 	}
-	update_indices()
 
 	text_index, err = bleve.Open("database/search.bleve")
 	if err != nil {
