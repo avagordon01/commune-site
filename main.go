@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/gob"
 	"github.com/blevesearch/bleve"
 	"github.com/boltdb/bolt"
 	"github.com/dustin/go-humanize"
@@ -20,6 +20,7 @@ type Post struct {
 	Title        string
 	Snippet      string
 	Time         time.Time
+	Views        uint64
 	Value        float64
 	Username     string
 	Html         template.HTML
@@ -49,27 +50,43 @@ var (
 const page_length uint64 = 50
 
 func main() {
-	f, err := os.Open("database/posts.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.NewDecoder(f).Decode(&posts)
-	if err != nil {
-		log.Fatal(err)
-	}
-	f.Close()
-
-	for i := 0; i < len(index); i++ {
-		index[i] = make([]uint64, len(posts))
-		for j := 0; j < len(posts); j++ {
-			index[i][uint64(j)] = uint64(j)
+	gob.Register(Post{})
+	gob.Register(Comment{})
+	db, err := bolt.Open("database/posts.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	err = db.Update(func(tx *bolt.Tx) error {
+		v, err := tx.CreateBucketIfNotExists([]byte("vars"))
+		if err != nil {
+			log.Fatal(err)
 		}
+		if v.Get([]byte("user_counter")) == nil {
+			v.Put([]byte("user_counter"), enc_id(0))
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte("posts_comments"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		f, err := tx.CreateBucketIfNotExists([]byte("freshness_index"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := uint64(0); i < 5; i++ {
+			_, err := f.CreateBucketIfNotExists(enc_id(i))
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
+	defer db.Close()
 
 	text_index, err = bleve.Open("database/search.bleve")
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer text_index.Close()
 
 	func_map := template.FuncMap{
 		"human_time": humanize.Time,
@@ -93,14 +110,4 @@ func main() {
 	close := make(chan os.Signal, 2)
 	signal.Notify(close, os.Interrupt, syscall.SIGTERM)
 	<-close
-
-	f, err = os.OpenFile("database/posts.json", os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		log.Println(err)
-	}
-	err = json.NewEncoder(f).Encode(&posts)
-	if err != nil {
-		log.Println(err)
-	}
-	f.Close()
 }

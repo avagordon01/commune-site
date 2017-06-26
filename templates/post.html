@@ -3,7 +3,7 @@
         <div class="post-content">{{ .Html }}</div>
         <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
         <a href="/post/{{ .Id }}#" class="actions">link</a>
-        <a href="/preview_post?post_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
+        <a href="/submit_comment?post_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
         <br>
         <hr>
         {{ if .Comments }}
@@ -26,7 +26,7 @@
                     <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
                     <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
                     <a href="#{{ .Id }}" class="actions">link</a>
-                    <a href="/preview_comment?comment_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
+                    <a href="/submit_comment?comment_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}

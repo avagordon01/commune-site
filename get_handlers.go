@@ -1,9 +1,7 @@
 package main
 
 import (
-	"github.com/blevesearch/bleve"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -81,13 +79,7 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		home(w, r, freshness)
 		return
 	}
-	query := bleve.NewMatchQuery(search_query)
-	search_req := bleve.NewSearchRequest(query)
-	search_res, err := text_index.Search(search_req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(search_res)
+	text_search(search_query)
 	results := struct {
 		Query   string
 		Results []Post

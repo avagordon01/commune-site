@@ -45,3 +45,39 @@ no surveillance, no google/facebook tracking or advertising
 
 separate page for preview/submit post and comments
 also for javascript fallback, link usually does in-page form, but goes to out-of-page form if javascript disabled
+
+recursive freshness index + 2d posts/comments index
+top level of freshness is just posts, next level is top level comments, and so on
+then how to update the freshness value of a comment in the recursive index?
+the freshness index and the posts/comments index need to have the same structure, either 2d+depth, or recursive
+    maybe we can avoid this, if we just scan the freshness index...
+    the only time we need to update anyway is when we insert a new comment,
+    so maybe if we combine the two operations we can do it much faster???
+    yep, inserting a new comment requires the same traversal as updating the freshnesses of the parent comments
+    could pass the id-path when we submit the form, so we dont have to scan, can just access the ids at each depth
+2d+depth allows for the fastest access but requires some hacking of the sort function
+is there any real downside to using fully recursive indexes on both sides?
+indexing a specific comment would be harder.. for inserting child comments and for text search
+    for inserting child comments, we can just pass the full id-path from the input form
+    for text search, we can pass the whole id-path as a string?
+
+probably the best way so far is to have a fully recursive freshness index and posts/comments index
+access a child comment using the full id-path from the post root
+    only used in inserting a new comment and updating the freshness values of the ancestors
+    doesnt have to be used in search, we only need the post id and comment id
+    why does the posts/comments index need to be recursive?
+    it does help with the traversal... does it? not massively
+    for inserting a new comment, take the path, for each level, id -> comment, comment -> freshness index -> children
+    for inserting a new comment, take the path, for each level, id -> comment
+    probably easiest just to scan the whole freshness index for the post, looking for the parent id, then insert it
+
+so, finally
+recursive freshness index
+2d posts/comments index
+
+freshness value -> freshness, id, c/b -> id
+id -> post/comment
+
+should append the id to the freshness value, so that freshnesses dont have to be unique
+should append a "c/b" the comment and the bucket slightly differently
+this is probably the best solution

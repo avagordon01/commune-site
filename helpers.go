@@ -22,7 +22,8 @@ func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("user_id")
 		if err != nil {
-			rand_id := uint64(rand.Uint32())<<32 + uint64(rand.Uint32())
+			rand.Seed(time.Now().UnixNano())
+			rand_id := rand.Uint64()
 			cookie = &http.Cookie{Name: "user_id", Value: strconv.FormatUint(rand_id, 10), Expires: time.Unix(1<<63-1, 0), Secure: true, HttpOnly: true}
 			user_counter++
 			http.SetCookie(w, cookie)
