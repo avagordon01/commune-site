@@ -37,6 +37,13 @@ type Comment struct {
 	Comments []Comment
 }
 
+type Topic struct {
+    Id uint64
+    Value float64
+    Similarity float64
+    Content string
+}
+
 var (
 	err          error
 	posts        []Post
@@ -52,6 +59,7 @@ const page_length uint64 = 50
 func main() {
 	gob.Register(Post{})
 	gob.Register(Comment{})
+    gob.Register(Topic{})
 	db, err := bolt.Open("database/posts.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
 	err = db.Update(func(tx *bolt.Tx) error {
 		v, err := tx.CreateBucketIfNotExists([]byte("vars"))
@@ -61,6 +69,14 @@ func main() {
 		if v.Get([]byte("user_counter")) == nil {
 			v.Put([]byte("user_counter"), enc_id(0))
 		}
+        _, err = tx.CreateBucketIfNotExists([]byte("trending_topics"))
+        if err != nil {
+            log.Fatal(err)
+        }
+        _, err = tx.CreateBucketIfNotExists([]byte("similar_topics"))
+        if err != nil {
+            log.Fatal(err)
+        }
 		_, err = tx.CreateBucketIfNotExists([]byte("posts_comments"))
 		if err != nil {
 			log.Fatal(err)

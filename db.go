@@ -61,6 +61,37 @@ func insert_comment(post_id uint64, parent_id uint64, c Comment) uint64 {
 //(delete and reinsert with new freshness)
 func update_value(post_id uint64, comment_id uint64, value float32) {}
 
+func return_similar(topic_id uint64) []Topic {
+    topics := make([]Topic, 10)
+    err = db.View(func(tx *bolt.Tx) error {
+        b := tx.Bucket([]byte("similar_topics"))
+        b_topic := b.Bucket(enc_id(topic_id))
+        c := b_topic.Cursor()
+        i := uint64(0)
+        for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
+            topic := dec_topic(v)
+            topics = append(topics, topic)
+        }
+        return nil
+    })
+    return topics
+}
+
+func return_trending() []Topic {
+    topics := make([]Topic, 10)
+    err = db.View(func(tx *bolt.Tx) error {
+        b := tx.Bucket([]byte("trending_topics"))
+        c := b.Cursor()
+        i := uint64(0)
+        for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
+            topic := dec_topic(v)
+            topics = append(topics, topic)
+        }
+        return nil
+    })
+    return topics
+}
+
 func return_slice(freshness uint64, start uint64, end uint64) []Post {
 	var posts []Post
 	err = db.View(func(tx *bolt.Tx) error {
@@ -214,4 +245,23 @@ func dec_comment(b []byte) Comment {
 		log.Fatal(err)
 	}
 	return c
+}
+func enc_topic(t Topic) []byte {
+    var buf bytes.Buffer
+    enc := gob.NewEncoder(&buf)
+    err = enc.Encode(&t)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return buf.Bytes()
+}
+func dec_topic(b []byte) Topic {
+    buf := *bytes.NewBuffer(b)
+    dec := gob.NewDecoder(&buf)
+    var t Topic
+    err = dec.Decode(&t)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return t
 }
