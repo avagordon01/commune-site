@@ -102,7 +102,7 @@ func get_file_embed(embed_url string) string {
 
 func render_text(text_raw string) (string, string) {
 	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
-	re_title := regexp.MustCompile(`^\s*(?P<title>.*\n`)
+	re_title := regexp.MustCompile(`^\s*(?P<title>.*)\n`)
 	title := re_title.FindStringSubmatch(text_san)[1]
 	re := regexp.MustCompile(
 		`(?P<block>` + "```.*```" + `)|` +

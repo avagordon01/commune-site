@@ -57,7 +57,7 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.NotFound(w, r)
 		return
 	}
-	post := posts[post_id]
+	post := view_post(post_id)
 	err = templates["post.html"].Execute(w, Page{
 		Title:     template.HTML(post.Title),
 		Content:   post,

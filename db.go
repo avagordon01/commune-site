@@ -8,7 +8,6 @@ import (
 	"github.com/boltdb/bolt"
 	"log"
 	"math"
-	"time"
 )
 
 func value(freshness float64, post Post) float64 {
@@ -21,32 +20,57 @@ func compare(freshness float64) func(i, j int) bool {
 	}
 }
 
-func insert_post(p Post) uint64 {
+func next_post_id() uint64 {
 	s := uint64(0)
 	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("posts"))
+		b := tx.Bucket([]byte("posts_comments"))
 		s, err = b.NextSequence()
 		if err != nil {
 			log.Fatal(err)
 		}
-		post_bucket, err := b.CreateBucket(enc_id(s))
-		if err != nil {
-			log.Fatal(err)
-		}
-		s, err = post_bucket.NextSequence()
-		if err != nil {
-			log.Fatal(err)
-		}
-		post_bucket.Put(enc_id(s), enc_post(p))
 		return nil
 	})
 	return s
 }
 
+func next_comment_id(post_id uint64) uint64 {
+	s := uint64(0)
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("posts_comments"))
+		post_bucket := b.Bucket(enc_id(post_id))
+		s, err = post_bucket.NextSequence()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return nil
+	})
+	return s
+}
+
+func insert_post(p Post) uint64 {
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("posts_comments"))
+		post_bucket, err := b.CreateBucket(enc_id(p.Id))
+		if err != nil {
+			return err
+		}
+		s, err := post_bucket.NextSequence()
+		if err != nil {
+			return err
+		}
+		post_bucket.Put(enc_id(s), enc_post(p))
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return p.Id
+}
+
 func insert_comment(post_id uint64, parent_id uint64, c Comment) uint64 {
 	s := uint64(0)
 	err = db.Update(func(tx *bolt.Tx) error {
-		posts_bucket := tx.Bucket([]byte("posts"))
+		posts_bucket := tx.Bucket([]byte("posts_comments"))
 		post_bucket := posts_bucket.Bucket(enc_id(post_id))
 		s, err = post_bucket.NextSequence()
 		post_bucket.Put(enc_id(s), enc_comment(c))
@@ -62,34 +86,34 @@ func insert_comment(post_id uint64, parent_id uint64, c Comment) uint64 {
 func update_value(post_id uint64, comment_id uint64, value float32) {}
 
 func return_similar(topic_id uint64) []Topic {
-    topics := make([]Topic, 10)
-    err = db.View(func(tx *bolt.Tx) error {
-        b := tx.Bucket([]byte("similar_topics"))
-        b_topic := b.Bucket(enc_id(topic_id))
-        c := b_topic.Cursor()
-        i := uint64(0)
-        for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
-            topic := dec_topic(v)
-            topics = append(topics, topic)
-        }
-        return nil
-    })
-    return topics
+	topics := make([]Topic, 10)
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("similar_topics"))
+		b_topic := b.Bucket(enc_id(topic_id))
+		c := b_topic.Cursor()
+		i := uint64(0)
+		for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
+			topic := dec_topic(v)
+			topics = append(topics, topic)
+		}
+		return nil
+	})
+	return topics
 }
 
 func return_trending() []Topic {
-    topics := make([]Topic, 10)
-    err = db.View(func(tx *bolt.Tx) error {
-        b := tx.Bucket([]byte("trending_topics"))
-        c := b.Cursor()
-        i := uint64(0)
-        for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
-            topic := dec_topic(v)
-            topics = append(topics, topic)
-        }
-        return nil
-    })
-    return topics
+	topics := make([]Topic, 10)
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("trending_topics"))
+		c := b.Cursor()
+		i := uint64(0)
+		for k, v := c.First(); i < 10 && k != nil; k, v = c.Next() {
+			topic := dec_topic(v)
+			topics = append(topics, topic)
+		}
+		return nil
+	})
+	return topics
 }
 
 func return_slice(freshness uint64, start uint64, end uint64) []Post {
@@ -98,7 +122,7 @@ func return_slice(freshness uint64, start uint64, end uint64) []Post {
 		b := tx.Bucket([]byte("freshness0"))
 		c := b.Cursor()
 		_, v := c.First()
-		posts_bucket := tx.Bucket([]byte("posts"))
+		posts_bucket := tx.Bucket([]byte("posts_comments"))
 		i := uint64(0)
 		for ; i < start; _, v = c.Next() {
 		}
@@ -123,68 +147,42 @@ func text_search(query string) []Post {
 }
 
 func view_post(post_id uint64) Post {
-	var post_buf []byte
+	var post Post
 	err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("posts"))
-		v := b.Get(enc_id(post_id))
-		copy(post_buf, v)
+		b := tx.Bucket([]byte("posts_comments"))
+		post_bucket := b.Bucket(enc_id(post_id))
+		v := post_bucket.Get(enc_id(1))
+		post = dec_post(v)
 		return nil
 	})
-	return dec_post(post_buf)
+	return post
 }
 
-func test() {
+/*db.Update(func(tx *bolt.Tx) error {
+	b := tx.Bucket([]byte("posts_comments"))
+	id, _ := b.NextSequence()
+	post := Post{
+		Id: id,
+	}
+
 	gob.Register(Post{})
-	gob.Register(Comment{})
-	db, err := bolt.Open("database/posts.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
-	err = db.Update(func(tx *bolt.Tx) error {
-		_, err = tx.CreateBucketIfNotExists([]byte("posts_comments"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		f, err := tx.CreateBucketIfNotExists([]byte("freshness_index"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := uint64(0); i < 5; i++ {
-			_, err := f.CreateBucketIfNotExists(enc_id(i))
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-		return nil
-	})
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err = enc.Encode(&post)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	return b.Put(enc_id(post.Id), buf.Bytes())
+})
 
-	/*db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("posts"))
-		id, _ := b.NextSequence()
-		post := Post{
-			Id: id,
-		}
-
-		gob.Register(Post{})
-		var buf bytes.Buffer
-		enc := gob.NewEncoder(&buf)
-		err = enc.Encode(&post)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return b.Put(enc_id(post.Id), buf.Bytes())
-	})
-
-	db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("posts"))
-		c := b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("key=%s, value=%s\n", k, v)
-		}
-		return nil
-	})*/
-}
+db.View(func(tx *bolt.Tx) error {
+	b := tx.Bucket([]byte("posts_comments"))
+	c := b.Cursor()
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		fmt.Printf("key=%s, value=%s\n", k, v)
+	}
+	return nil
+})*/
 
 func enc_freshness(f float32, id uint64, c rune) []byte {
 	return append(append(enc_float(f), enc_id(id)...), []byte(string(c))...)
@@ -247,21 +245,21 @@ func dec_comment(b []byte) Comment {
 	return c
 }
 func enc_topic(t Topic) []byte {
-    var buf bytes.Buffer
-    enc := gob.NewEncoder(&buf)
-    err = enc.Encode(&t)
-    if err != nil {
-        log.Fatal(err)
-    }
-    return buf.Bytes()
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err = enc.Encode(&t)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return buf.Bytes()
 }
 func dec_topic(b []byte) Topic {
-    buf := *bytes.NewBuffer(b)
-    dec := gob.NewDecoder(&buf)
-    var t Topic
-    err = dec.Decode(&t)
-    if err != nil {
-        log.Fatal(err)
-    }
-    return t
+	buf := *bytes.NewBuffer(b)
+	dec := gob.NewDecoder(&buf)
+	var t Topic
+	err = dec.Decode(&t)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return t
 }

@@ -38,10 +38,10 @@ type Comment struct {
 }
 
 type Topic struct {
-    Id uint64
-    Value float64
-    Similarity float64
-    Content string
+	Id         uint64
+	Value      float64
+	Similarity float64
+	Content    string
 }
 
 var (
@@ -51,7 +51,7 @@ var (
 	user_counter uint64
 	templates    map[string]*template.Template
 	text_index   bleve.Index
-	db           bolt.DB
+	db           *bolt.DB
 )
 
 const page_length uint64 = 50
@@ -59,36 +59,42 @@ const page_length uint64 = 50
 func main() {
 	gob.Register(Post{})
 	gob.Register(Comment{})
-    gob.Register(Topic{})
-	db, err := bolt.Open("database/posts.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	gob.Register(Topic{})
+	db, err = bolt.Open("database/database.bolt", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = db.Update(func(tx *bolt.Tx) error {
 		v, err := tx.CreateBucketIfNotExists([]byte("vars"))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		if v.Get([]byte("user_counter")) == nil {
 			v.Put([]byte("user_counter"), enc_id(0))
 		}
-        _, err = tx.CreateBucketIfNotExists([]byte("trending_topics"))
-        if err != nil {
-            log.Fatal(err)
-        }
-        _, err = tx.CreateBucketIfNotExists([]byte("similar_topics"))
-        if err != nil {
-            log.Fatal(err)
-        }
+		if v.Get([]byte("page_counter")) == nil {
+			v.Put([]byte("page_counter"), enc_id(0))
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte("trending_topics"))
+		if err != nil {
+			log.Println(err)
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte("similar_topics"))
+		if err != nil {
+			log.Println(err)
+		}
 		_, err = tx.CreateBucketIfNotExists([]byte("posts_comments"))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		f, err := tx.CreateBucketIfNotExists([]byte("freshness_index"))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		for i := uint64(0); i < 5; i++ {
 			_, err := f.CreateBucketIfNotExists(enc_id(i))
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}
 		return nil
@@ -104,11 +110,8 @@ func main() {
 	}
 	defer text_index.Close()
 
-	func_map := template.FuncMap{
-		"human_time": humanize.Time,
-	}
 	templates = make(map[string]*template.Template)
-	templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
+	templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(template.FuncMap{"human_time": humanize.Time})
 	templates["home.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/home.html"))
 	templates["post.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/post.html"))
 	templates["search.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/search.html"))

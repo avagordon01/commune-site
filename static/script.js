@@ -36,9 +36,9 @@ function toggle_comment(element) {
         post = document.querySelector(".post")
         comment.post_id.value = post.id
         if (element.parentElement != post) {
-            comment.comment_id.value = element.parentElement.id
+            comment.parent_id.value = element.parentElement.id
         } else {
-            comment.comment_id.value = ""
+            comment.parend_id.value = ""
         }
         element.parentElement.insertBefore(comment, element.nextSibling)
         comment.text.focus()
