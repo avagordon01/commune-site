@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func get_oembed(embed_url string) interface{} {
+func get_oembed(embed_url string) string {
 	client := &http.Client{Timeout: 10 * time.Second}
 	r, err := client.Get("https://noembed.com/embed?maxwidth=854&maxheight=640&url=" + url.QueryEscape(embed_url))
 	if err != nil {
@@ -26,13 +26,16 @@ func get_oembed(embed_url string) interface{} {
 	defer r.Body.Close()
 	target := struct {
 		Error string
-		Html  template.HTML
+		Html  string
 	}{}
 	json.NewDecoder(r.Body).Decode(target)
-	return target
+	if target.Error != "" {
+		return ""
+	}
+	return target.Html
 }
 
-func get_readability(embed_url string) string {
+func get_rembed(embed_url string) string {
 	client := &http.Client{Timeout: 10 * time.Second}
 	r, err := client.Get(embed_url)
 	if err != nil {
@@ -60,6 +63,7 @@ func get_readability(embed_url string) string {
 		log.Fatal(err)
 	}
 
+	//translate the relative urls in the document to absolute urls
 	base_url, err := url.Parse(embed_url)
 	if err != nil {
 		log.Fatal(err)
@@ -87,7 +91,7 @@ func get_readability(embed_url string) string {
 	return b.String()
 }
 
-func get_file_embed(embed_url string) string {
+func get_fembed(embed_url string) string {
 	switch filepath.Ext(strings.ToLower(embed_url)) {
 	case ".jpg", ".jpeg", ".png", ".gif", ".svg":
 		return "<img src=\"" + string(template.HTMLAttr(embed_url)) + "\">"
@@ -124,18 +128,12 @@ func render_text(text_raw string) (string, string) {
 			case "block":
 				html_raw.WriteString("<pre>" + group + "<pre>")
 			case "url":
-				json := get_oembed(string(group)).(struct {
-					Error string
-					Html  template.HTML
-				})
-				embed := get_file_embed(string(group))
-				r_embed := get_readability(string(group))
-				if embed != "" {
-					html_raw.WriteString(embed)
-				} else if json.Error == "" && json.Html != "" {
-					html_raw.WriteString(string(json.Html))
-				} else if r_embed != "" {
-					html_raw.WriteString(r_embed)
+				if fembed := get_fembed(string(group)); fembed != "" {
+					html_raw.WriteString(fembed)
+				} else if oembed := get_oembed(string(group)); oembed != "" {
+					html_raw.WriteString(oembed)
+				} else if rembed := get_rembed(string(group)); rembed != "" {
+					html_raw.WriteString(rembed)
 				} else {
 					html_raw.WriteString("<a href=\"" + group + "\">" + group + "</a>")
 				}

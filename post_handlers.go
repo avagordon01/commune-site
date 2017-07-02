@@ -48,7 +48,7 @@ func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
 		Value: 0,
 		Html:  template.HTML(html_san),
 	}
-	post := view_post(post_id)
+	post, _ := view_post(post_id)
 	comment.Id = next_comment_id(post_id)
 	comment.Username = user_name(post.Time, user_id, post_id)
 	parent_id, err := strconv.ParseUint(r.FormValue("parent_id"), 10, 64)

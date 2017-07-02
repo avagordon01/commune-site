@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/gob"
 	"github.com/blevesearch/bleve"
 	"github.com/boltdb/bolt"
@@ -116,26 +115,29 @@ func return_trending() []Topic {
 	return topics
 }
 
-func return_slice(freshness uint64, start uint64, end uint64) []Post {
+func get_posts(freshness uint64, start uint64, num uint64) ([]Post, bool) {
 	var posts []Post
+	var more bool
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("freshness0"))
 		c := b.Cursor()
 		_, v := c.First()
 		posts_bucket := tx.Bucket([]byte("posts_comments"))
 		i := uint64(0)
-		for ; i < start; _, v = c.Next() {
+		var k []byte
+		for ; i < start; k, v = c.Next() {
 		}
-		for _, v = c.Next(); i < end; _, v = c.Next() {
+		for k, v = c.Next(); k != nil && i < num; k, v = c.Next() {
 			post := dec_post(posts_bucket.Get(v))
 			posts = append(posts, post)
 		}
+		more = (k != nil)
 		return nil
 	})
-	return posts
+	return posts, more
 }
 
-func text_search(query string) []Post {
+func text_search(query string, freshness uint64, start uint64, num uint64) ([]Post, bool) {
 	search_query := bleve.NewMatchQuery(query)
 	search_req := bleve.NewSearchRequest(search_query)
 	search_res, err := text_index.Search(search_req)
@@ -143,10 +145,10 @@ func text_search(query string) []Post {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return nil
+	return nil, false
 }
 
-func view_post(post_id uint64) Post {
+func view_post(post_id uint64) (Post, error) {
 	var post Post
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("posts_comments"))
@@ -155,7 +157,7 @@ func view_post(post_id uint64) Post {
 		post = dec_post(v)
 		return nil
 	})
-	return post
+	return post, nil
 }
 
 /*db.Update(func(tx *bolt.Tx) error {
@@ -188,23 +190,42 @@ func enc_freshness(f float32, id uint64, c rune) []byte {
 	return append(append(enc_float(f), enc_id(id)...), []byte(string(c))...)
 }
 func enc_float(f float32) []byte {
-	bits := math.Float32bits(f)
-	bytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(bytes, bits)
-	return bytes
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err = enc.Encode(&f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return buf.Bytes()
 }
-func dec_float(bytes []byte) float32 {
-	bits := binary.BigEndian.Uint32(bytes)
-	f := math.Float32frombits(bits)
+func dec_float(b []byte) float32 {
+	buf := *bytes.NewBuffer(b)
+	dec := gob.NewDecoder(&buf)
+	var f float32
+	err = dec.Decode(&f)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return f
 }
 func enc_id(v uint64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, v)
-	return b
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err = enc.Encode(&v)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return buf.Bytes()
 }
 func dec_id(b []byte) uint64 {
-	return binary.BigEndian.Uint64(b)
+	buf := *bytes.NewBuffer(b)
+	dec := gob.NewDecoder(&buf)
+	var v uint64
+	err = dec.Decode(&v)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return v
 }
 func enc_post(p Post) []byte {
 	var buf bytes.Buffer

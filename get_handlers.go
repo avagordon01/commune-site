@@ -1,13 +1,12 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 )
 
 type Page struct {
-	Title     template.HTML
+	Title     string
 	Content   interface{}
 	Freshness uint64
 }
@@ -17,7 +16,7 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	if err != nil {
 		start = uint64(0)
 	}
-	input := struct {
+	content := struct {
 		Posts []Post
 		Start uint64
 		Next  uint64
@@ -26,23 +25,22 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		Start: start,
 	}
 	if start > page_length {
-		input.Prev = start - page_length
+		content.Prev = start - page_length
 	} else if start <= page_length && start > 0 {
-		input.Prev = 0
+		content.Prev = 0
 	} else {
-		input.Prev = start
+		content.Prev = start
 	}
-	if start+page_length < uint64(len(index[freshness])) {
-		input.Next = start + page_length
+	posts, more := get_posts(freshness, start, page_length)
+	content.Posts = posts
+	if more {
+		content.Next = start + page_length
 	} else {
-		input.Next = start
-	}
-	for i := start; i < uint64(len(index[freshness])) && i < start+page_length; i++ {
-		input.Posts = append(input.Posts, posts[index[freshness][i]])
+		content.Next = start
 	}
 	err = templates["home.html"].Execute(w, Page{
-		Title:     template.HTML("commune"),
-		Content:   input,
+		Title:     "commune",
+		Content:   content,
 		Freshness: freshness,
 	})
 	if err != nil {
@@ -57,9 +55,13 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.NotFound(w, r)
 		return
 	}
-	post := view_post(post_id)
+	post, err := view_post(post_id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
 	err = templates["post.html"].Execute(w, Page{
-		Title:     template.HTML(post.Title),
+		Title:     post.Title,
 		Content:   post,
 		Freshness: freshness,
 	})
@@ -79,33 +81,33 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		home(w, r, freshness)
 		return
 	}
-	text_search(search_query)
-	results := struct {
+	content := struct {
 		Query   string
 		Results []Post
 		Start   uint64
 		Next    uint64
 		Prev    uint64
 	}{
-		Query:   search_query,
-		Results: []Post{posts[0], posts[1]},
-		Start:   start,
+		Query: search_query,
+		Start: start,
 	}
 	if start > page_length {
-		results.Prev = start - page_length
+		content.Prev = start - page_length
 	} else if start <= page_length && start > 0 {
-		results.Prev = 0
+		content.Prev = 0
 	} else {
-		results.Prev = start
+		content.Prev = start
 	}
-	if start+page_length < uint64(len(results.Results)) {
-		results.Next = start + page_length
+	results, more := text_search(search_query, freshness, start, page_length)
+	content.Results = results
+	if more {
+		content.Next = start + page_length
 	} else {
-		results.Next = start
+		content.Next = start
 	}
 	err = templates["search.html"].Execute(w, Page{
-		Title:     template.HTML("\"" + search_query + "\""),
-		Content:   results,
+		Title:     search_query,
+		Content:   content,
 		Freshness: freshness,
 	})
 	if err != nil {
