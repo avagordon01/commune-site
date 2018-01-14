@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{{ .Title }}</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+        <script type="text/javascript" src="/static/script.js"></script>
+        <link rel="icon" type="image/png" href="/static/icon.png">
+    </head>
+    <body>
+        <header>
+            <br>
+            <h1><a href="/">commune</a></h1>
+            <br>
+            <hr>
+            <br>
+        </header>
+        <nav>
+            <br>
+            <h2>freshness</h2>
+            <p>
+                <a href="?freshness=0" {{ if eq .Freshness 0 }} class="grey" {{ end }} onclick="set_freshness(0);return false;">freshest</a>
+                <a href="?freshness=1" {{ if eq .Freshness 1 }} class="grey" {{ end }} onclick="set_freshness(1);return false;">fresher</a>
+                <a href="?freshness=2" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);return false;">both</a>
+                <a href="?freshness=3" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);return false;">higher</a>
+                <a href="?freshness=4" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);return false;">highest</a>
+            </p>
+            <br>
+
+            <h2>search</h2>
+            <form id="search" autocomplete="on" action="/search/" method="get">
+                <input name="query" type="search" required placeholder="#hashtag search query" title="">
+                <input type="submit" value="search">
+            </form>
+            <br>
+
+            <h2>submit post</h2>
+            <form id="post" autocomplete="on" enctype="multipart/form-data" method="post">
+                <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
+                <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
+                <input type="submit" value="post" formaction="/submit_post">
+            </form>
+            <br>
+
+            <h2>about commune</h2>
+            <p>
+                commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
+                <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                <a href="https://github.com/paddygord/commune">source code</a>
+            </p>
+
+            <form id="comment" autocomplete="on" enctype="multipart/form-data" method="post">
+                <textarea name="text" rows="12" required placeholder="write the comment text here" title=""></textarea>
+                <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
+                <input type="submit" value="reply" formaction="/submit_comment">
+                <input name="post_id" type="hidden" value="">
+                <input name="parent_id" type="hidden" value="">
+            </form>
+        </nav>
+        <section>
+            {{ template "content" .Content }}
+        </section>
+    </body>
+</html>

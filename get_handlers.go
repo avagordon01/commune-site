@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+    "path"
 )
 
 type Page struct {
@@ -10,6 +11,8 @@ type Page struct {
 	Content   interface{}
 	Freshness uint64
 }
+
+const page_length uint64 = 50
 
 func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	start, err := strconv.ParseUint(r.FormValue("start"), 10, 64)
@@ -50,7 +53,8 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 }
 
 func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
-	post_id, err := strconv.ParseUint(r.URL.Path[len("/post/"):], 10, 64)
+    _, str := path.Split(r.URL.Path)
+	post_id, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
 		return

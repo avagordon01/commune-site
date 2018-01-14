@@ -6,7 +6,7 @@
         <br>
         <ol class="posts" start="{{ .Start }} ">
             {{ range .Results }}
-                <li><p class="post-link"><a href="/post/{{ .Id }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
+                <li><p class="post-link"><a href="/post/{{ .ID }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
             {{ end }}
         </ol>
         {{ if ne .Prev .Start }}

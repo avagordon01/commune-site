@@ -1,9 +1,9 @@
 {{ define "content" }}
-    <div class="post" id="{{ .Id }}">
+    <div class="post" id="{{ .ID }}">
         <div class="post-content">{{ .Html }}</div>
         <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
-        <a href="/post/{{ .Id }}#" class="actions">link</a>
-        <a href="/submit_comment?post_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
+        <a href="/post/{{ .ID }}#" class="actions">link</a>
+        <a href="/submit_comment?post_id={{ .ID }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
         <br>
         <hr>
         {{ if .Comments }}
@@ -21,12 +21,12 @@
         <div class="comments">
             {{ range . }}
                 <br>
-                <div class="comment" id="{{ .Id }}">
+                <div class="comment" id="{{ .ID }}">
                     <div class="comment-content">{{ .Html }}</div>
                     <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
                     <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
-                    <a href="#{{ .Id }}" class="actions">link</a>
-                    <a href="/submit_comment?comment_id={{ .Id }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
+                    <a href="#{{ .ID }}" class="actions">link</a>
+                    <a href="/submit_comment?comment_id={{ .ID }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}

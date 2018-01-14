@@ -1,3 +1,7 @@
-go install || exit 1
-sudo /usr/bin/setcap cap_net_bind_service=+ep /srv/go/bin/commune
-$GOPATH/bin/commune
+set -e
+
+GOPATH=$(go env GOPATH)
+
+go install
+sudo /usr/bin/setcap cap_net_bind_service=+ep $GOPATH/bin/site
+$GOPATH/bin/site

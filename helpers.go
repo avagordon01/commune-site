@@ -3,8 +3,9 @@ package main
 import (
 	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
+    "strconv"
+    "fmt"
 )
 
 func https_redirect(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +25,7 @@ func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64))
 		if err != nil {
 			rand.Seed(time.Now().UnixNano())
 			rand_id := rand.Uint64()
-			cookie = &http.Cookie{Name: "user_id", Value: strconv.FormatUint(rand_id, 10), Expires: time.Unix(1<<63-1, 0), Secure: true, HttpOnly: true}
+			cookie = &http.Cookie{Name: "user_id", Value: fmt.Sprintf("%d", rand_id), Expires: time.Unix(1<<63-1, 0), Secure: true, HttpOnly: true}
 			user_counter++
 			http.SetCookie(w, cookie)
 		}
@@ -45,7 +46,7 @@ func fresh_cookie(f func(w http.ResponseWriter, r *http.Request, freshness uint6
 		} else if cookie, err := r.Cookie("freshness"); err == nil {
 			freshness, err = strconv.ParseUint(cookie.Value, 10, 64)
 		}
-		cookie := &http.Cookie{Value: strconv.FormatUint(freshness, 10), Expires: time.Now().Add(time.Hour * 24), Secure: true}
+		cookie := &http.Cookie{Value: fmt.Sprintf("%d", freshness), Expires: time.Now().Add(time.Hour * 24), Secure: true}
 		http.SetCookie(w, cookie)
 		f(w, r, freshness)
 	})
