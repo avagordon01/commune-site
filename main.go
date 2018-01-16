@@ -29,10 +29,12 @@ func main() {
 	defer text_index.Close()
 
 	templates = make(map[string]*template.Template)
-	templates["base.html"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(template.FuncMap{"human_time": humanize.Time})
-	templates["home.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/home.html"))
-	templates["post.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/post.html"))
-	templates["search.html"] = template.Must(template.Must(templates["base.html"].Clone()).ParseFiles("templates/search.html"))
+	templates["base"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(template.FuncMap{"human_time": humanize.Time})
+    templates["wrapper"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/wrapper.html"))
+	templates["home"] = template.Must(template.Must(templates["wrapper"].Clone()).ParseFiles("templates/home.html"))
+	templates["post"] = template.Must(template.Must(templates["wrapper"].Clone()).ParseFiles("templates/post.html"))
+	templates["search"] = template.Must(template.Must(templates["wrapper"].Clone()).ParseFiles("templates/search.html"))
+    templates["preview"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/preview.html"))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
