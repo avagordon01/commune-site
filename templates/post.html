@@ -2,15 +2,14 @@
     <div class="post" id="{{ .ID }}">
         <div class="post-content">{{ .Html }}</div>
         <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
-        <a href="/post/{{ .ID }}#" class="actions">link</a>
-        <a href="/submit_comment?post_id={{ .ID }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
-        <br>
-        <hr>
+        <p class="info">
+            <a href="/post/{{ .ID }}#">link</a>
+            <a href="/preview?post_id={{ .ID }}">reply</a>
+        </p>
         {{ if .Comments }}
             {{ template "comment" .Comments }}
         {{ else }}
             <div>
-                <br>
                 <p>no comments yet</p>
             </div>
         {{ end }}
@@ -20,13 +19,14 @@
     {{ with . }}
         <div class="comments">
             {{ range . }}
-                <br>
                 <div class="comment" id="{{ .ID }}">
                     <div class="comment-content">{{ .Html }}</div>
                     <p class="info">{{ .Username }}, {{ human_time .Time }}</p>
-                    <a href="javascript:;" class="actions" onclick="toggle_hidden(this);">hide</a>
-                    <a href="#{{ .ID }}" class="actions">link</a>
-                    <a href="/submit_comment?comment_id={{ .ID }}" class="actions" onclick="toggle_comment(this);return false;">reply</a><br>
+                    <p class="info">
+                        <a href="javascript:;" onclick="toggle_hidden(this);">hide</a>
+                        <a href="#{{ .ID }}">link</a>
+                        <a href="/preview?comment_id={{ .ID }}">reply</a>
+                    </p>
                     {{ template "comment" .Comments }}
                 </div>
             {{ end }}

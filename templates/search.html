@@ -1,9 +1,6 @@
 {{ define "content" }}
     {{ if .Results }}
         <p>search results for "{{ .Query }}"</p>
-        <br>
-        <hr>
-        <br>
         <ol class="posts" start="{{ .Start }} ">
             {{ range .Results }}
                 <li><p class="post-link"><a href="/post/{{ .ID }}">{{ .Title }}</a> {{ .Snippet }}</p></li>
@@ -17,8 +14,5 @@
         {{ end }}
     {{ else }}
         <p>no results for "{{ .Query }}"</p>
-        <br>
-        <hr>
-        <br>
     {{ end }}
 {{ end }}

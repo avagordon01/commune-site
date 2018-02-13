@@ -6,8 +6,6 @@ body {
     font-size: 14px;
     font-family: monospace;
     line-height: 1.3;
-    width: calc(854px + 400px + 20px);
-    margin: 0px auto;
 }
 a {
     text-decoration: none;
@@ -22,20 +20,32 @@ header h1 a {
 nav h2 {
     font-size: 16px;
 }
-.actions {
-    color: #333333;
-}
 header, section, nav {
-    box-sizing: border-box;
+    justify-items: stretch;
+    align-self: stretch;
 }
-header, section {
-    width: 854px;
-    float: left;
+body {
+    display: grid;
+    grid-template-areas:
+    "header nav"
+    "section nav";
+    grid-template-columns: 854px 400px;
+    grid-template-rows: auto 1fr;
+    grid-gap: 1.3em;
+    margin: 1.3em;
+    justify-content: center;
+}
+header {
+    grid-area: header;
+}
+section {
+    grid-area: section;
 }
 nav {
-    margin-left: 20px;
-    width: 400px;
-    float: right;
+    grid-area: nav;
+}
+nav div {
+    margin-bottom: 1.3em;
 }
 
 
@@ -105,15 +115,19 @@ li {
 .comment > .comments {
     margin-left: 1.5em;
 }
-.actions, .info {
+.info {
     color: #777777;
     font-size: 12px;
+}
+.info a {
+    color: inherit;
 }
 .grey {
     color: #777777;
 }
 hr {
     border: 0;
+    margin-top: 1.3em;
 }
 hr:after {
     content: "// ----------------";
