@@ -24,11 +24,18 @@
 	{{ end }}
     <form id="post" enctype="multipart/form-data" method="post">
         <textarea name="text" rows="12" required placeholder="write the post text here" title="">{{ .Content.Markdown }}</textarea>
-        <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-        <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
+        <div class="flex">
+            <div>
+                <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
+            </div>
+            <div class="flex-gap"></div>
+            <div>
+                <input type="submit" value="preview" formaction="/preview">
+                <input type="submit" value="submit" formaction="/submit" class="clear">
+            </div>
+        </div>
 		<input name="post_id" type="hidden" value="{{ .Content.Post_id }}">
 		<input name="parent_id" type="hidden" value="{{ .Content.Parent_id }}">
-        <input type="submit" value="preview" formaction="/preview">
-        <input type="submit" value="submit" formaction="/submit">
     </form>
 {{ end }}

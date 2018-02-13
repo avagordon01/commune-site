@@ -44,7 +44,7 @@ section {
 nav {
     grid-area: nav;
 }
-nav div {
+nav > div {
     margin-bottom: 1.3em;
 }
 
@@ -69,8 +69,14 @@ textarea {
 }
 input[type="submit"] {
     width: 80px;
-    float: right;
     cursor: pointer;
+}
+.flex {
+    align-items: center;
+    display: flex;
+}
+.flex-gap {
+    flex: 1;
 }
 #comment {
     display: none;
