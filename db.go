@@ -1,7 +1,7 @@
 package main
 
 import (
-    //"github.com/asdine/storm"
+	//"github.com/asdine/storm"
 	"github.com/blevesearch/bleve"
 	"log"
 	"math"
@@ -26,7 +26,7 @@ func insert_comment(post_id uint64, parent_id uint64, c Comment) uint64 {
 }
 
 func get_posts(freshness uint64, start uint64, num uint64) ([]Post, bool) {
-    posts := []Post{Post{Title: "test"}}
+	posts := []Post{{Title: "test"}}
 	return posts, false
 }
 
@@ -42,11 +42,11 @@ func text_search(query string, freshness uint64, start uint64, num uint64) ([]Po
 }
 
 func view_post(post_id uint64) (Post, error) {
-    post := Post{Title: "test"}
+	post := Post{Title: "test"}
 	return post, nil
 }
 
 func view_comment(post_id uint64, comment_id uint64) (Comment, error) {
-    comment := Comment{Html: "test"}
-    return comment, nil
+	comment := Comment{Html: "test"}
+	return comment, nil
 }

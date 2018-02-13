@@ -2,8 +2,8 @@ package main
 
 import (
 	"net/http"
+	"path"
 	"strconv"
-    "path"
 )
 
 const page_length uint64 = 50
@@ -47,7 +47,7 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 }
 
 func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
-    _, str := path.Split(r.URL.Path)
+	_, str := path.Split(r.URL.Path)
 	post_id, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
 		http.NotFound(w, r)

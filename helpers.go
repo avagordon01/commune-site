@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
-    "strconv"
-    "fmt"
 )
 
 func https_redirect(w http.ResponseWriter, r *http.Request) {

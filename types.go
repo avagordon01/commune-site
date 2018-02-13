@@ -13,7 +13,7 @@ type Page struct {
 
 type Post struct {
 	ID           uint64
-    Rand         uint64
+	Rand         uint64
 	Title        string
 	Snippet      string
 	Time         time.Time

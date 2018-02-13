@@ -107,11 +107,11 @@ func get_fembed(embed_url string) string {
 func render_text(text_raw string) (template.HTML, string) {
 	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
 	re_title := regexp.MustCompile(`^\s*(?P<title>.*)\n`)
-    title_matches := re_title.FindStringSubmatch(text_san)
-    title := ""
-    if len(title_matches) > 1 {
-	title = re_title.FindStringSubmatch(text_san)[1]
-    }
+	title_matches := re_title.FindStringSubmatch(text_san)
+	title := ""
+	if len(title_matches) > 1 {
+		title = re_title.FindStringSubmatch(text_san)[1]
+	}
 	re := regexp.MustCompile(
 		`(?P<block>` + "```.*```" + `)|` +
 			`(?P<url>https?://[^\s]+)|` +
