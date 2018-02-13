@@ -6,12 +6,6 @@ import (
     "path"
 )
 
-type Page struct {
-	Title     string
-	Content   interface{}
-	Freshness uint64
-}
-
 const page_length uint64 = 50
 
 func home(w http.ResponseWriter, r *http.Request, freshness uint64) {

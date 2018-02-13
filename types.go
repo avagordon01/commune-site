@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+type Page struct {
+	Title     string
+	Content   interface{}
+	Freshness uint64
+}
+
 type Post struct {
 	ID           uint64
     Rand         uint64

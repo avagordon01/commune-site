@@ -1,13 +1,34 @@
 {{ define "wrapper" }}
-    {{ template "content" .Content }}
+    <section class="center">
+        {{ template "content" . }}
+    </section>
 {{ end }}
 {{ define "content" }}
-    <section>
-        <form id="post" autocomplete="on" enctype="multipart/form-data" method="post">
-            <textarea name="text" rows="12" required placeholder="write the post text here" title=""></textarea>
-            <a href="https://github.com/paddygord/commune#commune">user guide</a>,
-            <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
-            <input type="submit" value="post" formaction="/submit_post">
-        </form>
-    </section>
+	{{ if .Content.Parent }}
+	<div class=comments>
+		<div class="comment" id="{{ .Content.Parent_id }}">
+			{{ with .Content.Parent }}
+			<div class="comment-content">{{ .Html }}</div>
+			<p class="info">{{ .Username }}, {{ human_time .Time }}</p>
+			{{ end }}
+			<div class="comments">
+				<div class="comment">
+					{{ with .Content.Child }}
+					<div class="comment-content">{{ .Html }}</div>
+					<p class="info">{{ .Username }}, {{ human_time .Time }}</p>
+					{{ end }}
+				</div>
+			</div>
+		</div>
+	</div>
+	{{ end }}
+    <form id="post" enctype="multipart/form-data" method="post">
+        <textarea name="text" rows="12" required placeholder="write the post text here" title="">{{ .Content.Markdown }}</textarea>
+        <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+        <a href="https://github.com/paddygord/commune/blob/master/format.md#format">formatting guide</a>
+		<input name="post_id" type="hidden" value="{{ .Content.Post_id }}">
+		<input name="parent_id" type="hidden" value="{{ .Content.Parent_id }}">
+        <input type="submit" value="preview" formaction="/preview">
+        <input type="submit" value="submit" formaction="/submit">
+    </form>
 {{ end }}

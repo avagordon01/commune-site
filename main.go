@@ -29,7 +29,8 @@ func main() {
 	defer text_index.Close()
 
 	templates = make(map[string]*template.Template)
-	templates["base"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(template.FuncMap{"human_time": humanize.Time})
+    func_map := template.FuncMap{"human_time": humanize.Time}
+	templates["base"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
     templates["wrapper"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/wrapper.html"))
 	templates["home"] = template.Must(template.Must(templates["wrapper"].Clone()).ParseFiles("templates/home.html"))
 	templates["post"] = template.Must(template.Must(templates["wrapper"].Clone()).ParseFiles("templates/post.html"))
@@ -40,6 +41,7 @@ func main() {
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
 	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
 	mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
+    mux.HandleFunc("/preview", hsts(user_cookie(preview)))
 	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
 	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))

@@ -24,23 +24,3 @@ function toggle_hidden(element) {
         element.innerHTML = "hide"
     }
 }
-
-function toggle_comment(element) {
-    var comment = document.querySelector("#comment")
-    if (comment == element.nextSibling) {
-        comment.style.display = null
-        post = document.querySelector(".post")
-        post.parentElement.insertBefore(comment, post.nextSibling)
-    } else {
-        comment.style.display = "initial"
-        post = document.querySelector(".post")
-        comment.post_id.value = post.id
-        if (element.parentElement != post) {
-            comment.parent_id.value = element.parentElement.id
-        } else {
-            comment.parend_id.value = ""
-        }
-        element.parentElement.insertBefore(comment, element.nextSibling)
-        comment.text.focus()
-    }
-}

@@ -104,10 +104,14 @@ func get_fembed(embed_url string) string {
 	}
 }
 
-func render_text(text_raw string) (string, string) {
+func render_text(text_raw string) (template.HTML, string) {
 	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
 	re_title := regexp.MustCompile(`^\s*(?P<title>.*)\n`)
-	title := re_title.FindStringSubmatch(text_san)[1]
+    title_matches := re_title.FindStringSubmatch(text_san)
+    title := ""
+    if len(title_matches) > 1 {
+	title = re_title.FindStringSubmatch(text_san)[1]
+    }
 	re := regexp.MustCompile(
 		`(?P<block>` + "```.*```" + `)|` +
 			`(?P<url>https?://[^\s]+)|` +
@@ -148,6 +152,6 @@ func render_text(text_raw string) (string, string) {
 	}
 	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
-	html_san := policy.Sanitize(html_raw.String())
+	html_san := template.HTML(policy.Sanitize(html_raw.String()))
 	return html_san, title
 }

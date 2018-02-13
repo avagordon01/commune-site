@@ -45,3 +45,8 @@ func view_post(post_id uint64) (Post, error) {
     post := Post{Title: "test"}
 	return post, nil
 }
+
+func view_comment(post_id uint64, comment_id uint64) (Comment, error) {
+    comment := Comment{Html: "test"}
+    return comment, nil
+}
