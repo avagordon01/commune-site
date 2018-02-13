@@ -8,6 +8,45 @@
         <link rel="icon" type="image/png" href="/static/icon.png">
     </head>
     <body>
-        {{ template "wrapper" . }}
+        <header>
+            <h1><a href="/">commune</a></h1>
+            <hr>
+        </header>
+        <nav>
+            <div>
+                <h2>freshness</h2>
+                <p>
+                    <a href="?freshness=0" {{ if eq .Freshness 0 }} class="grey" {{ end }} onclick="set_freshness(0);return false;">freshest</a>
+                    <a href="?freshness=1" {{ if eq .Freshness 1 }} class="grey" {{ end }} onclick="set_freshness(1);return false;">fresher</a>
+                    <a href="?freshness=2" {{ if eq .Freshness 2 }} class="grey" {{ end }} onclick="set_freshness(2);return false;">both</a>
+                    <a href="?freshness=3" {{ if eq .Freshness 3 }} class="grey" {{ end }} onclick="set_freshness(3);return false;">higher</a>
+                    <a href="?freshness=4" {{ if eq .Freshness 4 }} class="grey" {{ end }} onclick="set_freshness(4);return false;">highest</a>
+                </p>
+            </div>
+            <div>
+                <h2>search</h2>
+                <form id="search" autocomplete="on" action="/search/" method="get">
+                    <input name="query" type="search" required placeholder="#hashtag search query" title="">
+                    <div class="flex">
+                        <div class="flex-gap"></div>
+                        <input type="submit" value="search">
+                    </div>
+                </form>
+            </div>
+            <div>
+                <h2><a href="/preview">submit post</a></h2>
+            </div>
+            <div>
+                <h2>about commune</h2>
+                <p>
+                    commune is a community news and discussion site, with a radical focus on tolerance and inclusion,
+                    <a href="https://github.com/paddygord/commune#commune">user guide</a>,
+                    <a href="https://github.com/paddygord/commune">source code</a>
+                </p>
+            </div>
+        </nav>
+        <section>
+            {{ template "content" .Content }}
+        </section>
     </body>
 </html>
