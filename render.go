@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/dyatlov/go-readability"
 	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/net/html"
@@ -106,12 +107,13 @@ func get_fembed(embed_url string) string {
 
 func render_text(text_raw string) (template.HTML, string) {
 	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
-	re_title := regexp.MustCompile(`^\s*(?P<title>(?U).*)\s*\n`)
+	re_title := regexp.MustCompile(`^\s*(?U:(?P<title>.*))\s*\n`)
 	title_matches := re_title.FindStringSubmatch(text_san)
 	title := ""
-	if len(title_matches) > 2 {
+	if len(title_matches) > 1 {
 		title = title_matches[1]
 	}
+	fmt.Printf("%q", title_matches)
 	re := regexp.MustCompile(
 		`(?sU:` + "```" + `(?P<pre>.*)` + "```" + `)|` +
 			`(?P<url>https?://[^\s]+)|` +
@@ -120,13 +122,13 @@ func render_text(text_raw string) (template.HTML, string) {
 			`(?P<normal>.)`)
 	matches := re.FindAllStringSubmatch(text_san, -1)
 	var html_raw bytes.Buffer
+	html_raw.WriteString("<h1>" + title + "</h1>")
 	for _, match := range matches {
 		for group_idx, group := range match {
 			name := re.SubexpNames()[group_idx]
 			if group == "" {
 				continue
 			}
-            log.Println(group)
 			switch name {
 			case "pre":
 				html_raw.WriteString("<pre>" + group + "</pre>")
@@ -156,18 +158,18 @@ func render_text(text_raw string) (template.HTML, string) {
 }
 
 func main() {
-    str := ` title test 
+	str := ` title test 
 
-`+"``` pre test "+`
+` + "``` pre test " + `
 
-`+" pre test ```"+`
+` + " pre test ```" + `
 
-`+"``` pre test "+`
+` + "``` pre test " + `
 
-`+" pre test ```"+`
+` + " pre test ```" + `
 
 `
-    out, _ := render_text(str)
-    log.Println(str)
-    log.Println(out)
+	out, _ := render_text(str)
+	log.Println(str)
+	log.Println(out)
 }
