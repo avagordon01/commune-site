@@ -106,31 +106,30 @@ func get_fembed(embed_url string) string {
 
 func render_text(text_raw string) (template.HTML, string) {
 	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
-	re_title := regexp.MustCompile(`^\s*(?P<title>.*)\n`)
+	re_title := regexp.MustCompile(`^\s*(?P<title>(?U).*)\s*\n`)
 	title_matches := re_title.FindStringSubmatch(text_san)
 	title := ""
-	if len(title_matches) > 1 {
-		title = re_title.FindStringSubmatch(text_san)[1]
+	if len(title_matches) > 2 {
+		title = title_matches[1]
 	}
 	re := regexp.MustCompile(
-		`(?P<block>` + "```.*```" + `)|` +
+		`(?sU:` + "```" + `(?P<pre>.*)` + "```" + `)|` +
 			`(?P<url>https?://[^\s]+)|` +
 			`(?P<hashtag>#[_\pL\pN]+)|` +
 			`(?P<break>[\r\n]*)|` +
 			`(?P<normal>.)`)
-	re.Longest()
 	matches := re.FindAllStringSubmatch(text_san, -1)
-	groupNames := re.SubexpNames()
 	var html_raw bytes.Buffer
 	for _, match := range matches {
-		for groupIdx, group := range match {
-			name := groupNames[groupIdx]
+		for group_idx, group := range match {
+			name := re.SubexpNames()[group_idx]
 			if group == "" {
 				continue
 			}
+            log.Println(group)
 			switch name {
-			case "block":
-				html_raw.WriteString("<pre>" + group + "<pre>")
+			case "pre":
+				html_raw.WriteString("<pre>" + group + "</pre>")
 			case "url":
 				if fembed := get_fembed(string(group)); fembed != "" {
 					html_raw.WriteString(fembed)
@@ -154,4 +153,21 @@ func render_text(text_raw string) (template.HTML, string) {
 	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
 	html_san := template.HTML(policy.Sanitize(html_raw.String()))
 	return html_san, title
+}
+
+func main() {
+    str := ` title test 
+
+`+"``` pre test "+`
+
+`+" pre test ```"+`
+
+`+"``` pre test "+`
+
+`+" pre test ```"+`
+
+`
+    out, _ := render_text(str)
+    log.Println(str)
+    log.Println(out)
 }
