@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/asdine/storm"
 	"github.com/blevesearch/bleve"
 	"github.com/dustin/go-humanize"
 	"golang.org/x/crypto/acme/autocert"
@@ -13,12 +14,10 @@ import (
 )
 
 var (
-	err          error
-	posts        []Post
-	index        [5][]uint64
-	user_counter uint64
-	templates    map[string]*template.Template
-	text_index   bleve.Index
+	err        error
+	templates  map[string]*template.Template
+	text_index bleve.Index
+	database   *storm.DB
 )
 
 func main() {
@@ -27,6 +26,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer text_index.Close()
+
+	database, err = storm.Open("database/database.bolt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
 
 	templates = make(map[string]*template.Template)
 	func_map := template.FuncMap{"human_time": humanize.Time}
