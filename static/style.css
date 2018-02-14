@@ -1,7 +1,10 @@
+/* reset */
 * {
     padding: 0px;
     margin: 0px;
 }
+
+/* text */
 body {
     font-size: 14px;
     font-family: monospace;
@@ -20,6 +23,8 @@ header h1 a {
 nav h2 {
     font-size: 16px;
 }
+
+/* layout */
 header, section, nav {
     justify-items: stretch;
     align-self: stretch;
@@ -32,8 +37,8 @@ body {
     grid-template-columns: 854px 400px;
     grid-template-rows: auto 1fr;
     grid-gap: 1.3em;
-    margin: 1.3em;
-    justify-content: center;
+    width: calc(854px + 400px + 1.3em);
+    margin: 1.3em auto;
 }
 header {
     grid-area: header;
@@ -48,7 +53,7 @@ nav > div {
     margin-bottom: 1.3em;
 }
 
-
+/* forms/inputs */
 form {
     overflow-y: hidden;
 }
@@ -82,7 +87,7 @@ input[type="submit"] {
     display: none;
 }
 
-
+/* posts/comments */
 .post-content, .comment-content {
     font-family: sans-serif;
 }
