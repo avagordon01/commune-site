@@ -18,7 +18,7 @@ func user_name(post_time time.Time, user_id uint64, post_id uint64) string {
 }
 
 func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
-	html_san, _ := render_text(r.FormValue("text"))
+	html_san, _ := render_text(r.FormValue("text"), false)
 	var input struct {
 		Parent    Post
 		Child     Comment
@@ -60,7 +60,7 @@ func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
 }
 
 func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
-	html_san, title := render_text(r.FormValue("text"))
+	html_san, title := render_text(r.FormValue("text"), true)
 	snippet := bluemonday.StrictPolicy().Sanitize(string(html_san))
 	snip_length := 200
 	if len(snippet) > snip_length {
@@ -80,7 +80,7 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
 }
 
 func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
-	html_san, _ := render_text(r.FormValue("text"))
+	html_san, _ := render_text(r.FormValue("text"), false)
 	post_id, err := strconv.ParseUint(r.FormValue("post_id"), 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
