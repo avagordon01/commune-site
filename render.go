@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/dyatlov/go-readability"
 	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/net/html"
@@ -29,7 +28,7 @@ func get_oembed(embed_url string) string {
 		Error string
 		Html  string
 	}{}
-	json.NewDecoder(r.Body).Decode(target)
+	json.NewDecoder(r.Body).Decode(&target)
 	if target.Error != "" {
 		return ""
 	}
@@ -98,38 +97,40 @@ func get_fembed(embed_url string) string {
 		return "<img src=\"" + string(template.HTMLAttr(embed_url)) + "\">"
 	case ".opus", ".weba", ".wav", ".mp3", ".flac":
 		return "<audio controls src=\"" + string(template.HTMLAttr(embed_url)) + "\">"
-	case ".ogg", ".webm", ".mp4":
+	case ".ogg", ".ogv", ".webm", ".mp4":
 		return "<video controls src=\"" + string(template.HTMLAttr(embed_url)) + "\">"
 	default:
 		return ""
 	}
 }
 
-func render_text(text_raw string) (template.HTML, string) {
-	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
-	re_title := regexp.MustCompile(`^\s*(?U:(?P<title>.*))\s*\n`)
-	title_matches := re_title.FindStringSubmatch(text_san)
-	title := ""
-	if len(title_matches) > 1 {
-		title = title_matches[1]
-	}
-	fmt.Printf("%q", title_matches)
-	re := regexp.MustCompile(
-		`(?sU:` + "```" + `(?P<pre>.*)` + "```" + `)|` +
-			`(?P<url>https?://[^\s]+)|` +
-			`(?P<hashtag>#[_\pL\pN]+)|` +
-			`(?P<break>[\r\n]*)|` +
-			`(?P<normal>.)`)
-	matches := re.FindAllStringSubmatch(text_san, -1)
+func render_text(text_raw string, process_title bool) (template.HTML, string) {
 	var html_raw bytes.Buffer
-	html_raw.WriteString("<h1>" + title + "</h1>")
+	text_san := string(html.EscapeString(strings.Replace(text_raw, "\r\n", "\n", -1)))
+	re_str := ""
+	if process_title {
+		re_str = re_str + `(?:\A\s*(?P<title>(?U).*)[\t\f\r ]*\n)|`
+	}
+	re_str = re_str +
+		`(?sU:` + "```" + `(?P<pre>.*)` + "```" + `\n??)|` +
+		`(?P<url>https?://[^\s]+)|` +
+		`(?P<hashtag>#[_\pLetter\pNumber]+)|` +
+		`(?P<break>\n)|` +
+		`(?P<normal>.)`
+	re := regexp.MustCompile(re_str)
+	matches := re.FindAllStringSubmatch(text_san, -1)
+	title := ""
+	html_raw.WriteString("<p>")
 	for _, match := range matches {
 		for group_idx, group := range match {
-			name := re.SubexpNames()[group_idx]
 			if group == "" {
 				continue
 			}
+			name := re.SubexpNames()[group_idx]
 			switch name {
+			case "title":
+				html_raw.WriteString("<h2>" + group + "</h2>")
+				title = group
 			case "pre":
 				html_raw.WriteString("<pre>" + group + "</pre>")
 			case "url":
@@ -145,31 +146,19 @@ func render_text(text_raw string) (template.HTML, string) {
 			case "hashtag":
 				html_raw.WriteString("<a href=\"/search/?query=" + group + "\">" + group + "</a>")
 			case "break":
-				html_raw.WriteString("<br/>")
+				html_raw.WriteString("</p><p>")
 			case "normal":
 				html_raw.WriteString(group)
 			}
 		}
 	}
+	html_raw.WriteString("</p>")
 	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("iframe").AllowAttrs("src", "width", "height", "frameBorder").OnElements("iframe")
+	policy.AllowElements("video").AllowAttrs("src", "type").OnElements("video")
+	policy.AllowElements("audio").AllowAttrs("src", "type").OnElements("audio")
+	policy.AllowElements("image").AllowAttrs("src", "type").OnElements("image")
+	policy.AllowElements("source").AllowAttrs("src", "type").OnElements("source")
 	html_san := template.HTML(policy.Sanitize(html_raw.String()))
 	return html_san, title
-}
-
-func main() {
-	str := ` title test 
-
-` + "``` pre test " + `
-
-` + " pre test ```" + `
-
-` + "``` pre test " + `
-
-` + " pre test ```" + `
-
-`
-	out, _ := render_text(str)
-	log.Println(str)
-	log.Println(out)
 }
