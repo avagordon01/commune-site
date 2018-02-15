@@ -1,3 +1,10 @@
+could allow users to delete posts and comments if they maintain the same user_id
+ie they dont clear their cookies
+it encourages people to use the same user_id
+the user_id is a random uint64 so is basically secure
+    need to make sure we use crypto rand for user_id generation
+the delete function will probably just empty the html contents
+
 think about how to sort the comments
 sort only if depth is equal between consecutive pair
 could have an append only list of comments, and 5 sorted indexes pointing to their id, as in posts

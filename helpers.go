@@ -1,8 +1,11 @@
 package main
 
 import (
+	c_rand "crypto/rand"
+	"encoding/binary"
 	"fmt"
-	"math/rand"
+	"log"
+	m_rand "math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,14 +22,24 @@ func hsts(f func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	})
 }
 
+func user_name(post_time time.Time, user_id uint64, post_id uint64) string {
+	m_rand.Seed(int64(uint64(post_time.UnixNano()) ^ names_salt ^ user_id ^ post_id))
+	return adjectives[m_rand.Intn(len(adjectives))] +
+		colours[m_rand.Intn(len(colours))] +
+		plants[m_rand.Intn(len(plants))]
+}
+
 func user_cookie(f func(w http.ResponseWriter, r *http.Request, user_id uint64)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("user_id")
 		if err != nil {
-			rand.Seed(time.Now().UnixNano())
-			rand_id := rand.Uint64()
+			b := make([]byte, 8)
+			_, err := c_rand.Read(b)
+			if err != nil {
+				log.Fatal(err)
+			}
+			rand_id := binary.BigEndian.Uint64(b)
 			cookie = &http.Cookie{Name: "user_id", Value: fmt.Sprintf("%d", rand_id), Expires: time.Unix(1<<63-1, 0), Secure: true, HttpOnly: true}
-			//user_counter++
 			http.SetCookie(w, cookie)
 		}
 		user_id, err := strconv.ParseUint(cookie.Value, 10, 64)

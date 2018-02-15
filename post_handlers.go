@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-func user_name(post_time time.Time, user_id uint64, post_id uint64) string {
-	rand.Seed(post_time.UnixNano() ^ int64(names_salt) ^ int64(user_id) ^ int64(post_id))
-	return adjectives[rand.Intn(len(adjectives))] +
-		colours[rand.Intn(len(colours))] +
-		plants[rand.Intn(len(plants))]
-}
-
 func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	html_san, _ := render_text(r.FormValue("text"), false)
 	var input struct {
