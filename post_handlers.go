@@ -10,11 +10,10 @@ import (
 )
 
 func user_name(post_time time.Time, user_id uint64, post_id uint64) string {
-	return "test_name"
-	/*rand.Seed(post_time.UnixNano() ^ int64(names_seed) ^ int64(user_id) ^ int64(post_id))
+	rand.Seed(post_time.UnixNano() ^ int64(names_salt) ^ int64(user_id) ^ int64(post_id))
 	return adjectives[rand.Intn(len(adjectives))] +
 		colours[rand.Intn(len(colours))] +
-		animals[rand.Intn(len(animals))]*/
+		plants[rand.Intn(len(plants))]
 }
 
 func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
