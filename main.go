@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/asdine/storm"
+	"github.com/asdine/storm/codec/gob"
 	"github.com/blevesearch/bleve"
 	"github.com/dustin/go-humanize"
 	"golang.org/x/crypto/acme/autocert"
@@ -27,7 +28,7 @@ func main() {
 	}
 	defer text_index.Close()
 
-	database, err = storm.Open("database/database.bolt")
+	database, err = storm.Open("database/database.bolt", storm.Codec(gob.Codec))
 	if err != nil {
 		log.Fatal(err)
 	}

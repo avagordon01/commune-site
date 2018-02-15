@@ -1,0 +1,9 @@
+howto get a recursive structure in storm
+want simplicity
+have a root bucket containing posts
+also have a 
+could have a flat bucket of posts and comments
+then have a separate tree like structure for storing ids
+
+no need to separate them because in storm the indexes are separate from the bucket structure?
+like we could have a recursive bucket structure and still OrderBy("Freshness*") quickly?
