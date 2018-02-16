@@ -1,3 +1,14 @@
+should allow users some way to set up a private, external communication channel
+not by publicly associating a twitter account with the per-thread
+but a way to send a message to only one user
+but also dont want unsolicited messages
+maybe with a private comment that only a single other user can see?
+also you can delete comments so it shouldnt be risky
+a private comment can only be seen by the parent comment author and the reply author
+this is a way to set up private external communication
+doesnt allow the parent author to see anything else they cant already see
+highlight them with a faint red/purple so its obvious
+
 could allow users to delete posts and comments if they maintain the same user_id
 ie they dont clear their cookies
 it encourages people to use the same user_id
