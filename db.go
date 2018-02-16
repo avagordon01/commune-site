@@ -1,49 +1,93 @@
 package main
 
 import (
-	"github.com/blevesearch/bleve"
+	"encoding/binary"
+	"github.com/asdine/storm"
 	"log"
-	"math"
 )
 
-func value(freshness float64, post Post) float64 {
-	return float64(post.Value) * math.Pow(1.25, freshness*float64(post.Time.Unix()))
+func loc_to_node(x []uint64) storm.Node {
+	b := make([]byte, 8*len(x))
+	for i, v := range x {
+		binary.BigEndian.PutUint64(b[i*8:(i+1)*8], v)
+	}
+	var bucket storm.Node
+	if len(x) > 0 {
+		bucket = database.From(string(b))
+	} else {
+		bucket = database.Node
+	}
+	return bucket
 }
 
-func insert_post(p Post) uint64 {
-	database.Save(&p)
-	return p.ID
-}
-
-func insert_comment(post_id uint64, parent_id uint64, c Comment) uint64 {
-	return 0
-}
-
-func get_posts(freshness uint64, start uint64, num uint64) ([]Post, bool) {
-	var posts []Post
-	query := database.Select().Limit(int(num)).Skip(int(start)).OrderBy("Value").Reverse()
-	err = query.Find(&posts)
-	return posts, false
-}
-
-func text_search(query string, freshness uint64, start uint64, num uint64) ([]Post, bool) {
-	search_query := bleve.NewMatchQuery(query)
-	search_req := bleve.NewSearchRequest(search_query)
-	search_res, err := text_index.Search(search_req)
-	log.Println(search_res)
+func set_item(item *Post, loc []uint64) {
+	err = loc_to_node(loc).Save(item)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return nil, false
 }
 
-func view_post(post_id uint64) (Post, error) {
+func insert_post(post *Post) {
+	err = database.Save(post)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func view_post(post_id uint64) Post {
 	var post Post
 	err = database.One("ID", post_id, &post)
-	return post, err
+	if err != nil {
+		log.Fatal(err)
+	}
+	return post
 }
 
-func view_comment(post_id uint64, comment_id uint64) (Comment, error) {
-	comment := Comment{Html: "test"}
-	return comment, nil
+func view_post_with_comments(post_id uint64) Post {
+	var post Post
+	//TODO
+	return post
+}
+
+func insert_comment(post_id uint64, parent_ids []uint64, comment *Comment) {
+	err = loc_to_node(append([]uint64{post_id}, parent_ids...)).Save(comment)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func view_comment(post_id uint64, parent_ids []uint64, comment_id uint64) Comment {
+	var comment Comment
+	err = loc_to_node(append([]uint64{post_id}, parent_ids...)).One("ID", comment_id, &comment)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return comment
+}
+
+func test() {
+	database, err = storm.Open("database/database.bolt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
+
+	p := Post{Title: "test title"}
+	insert_post(&p)
+	log.Println(view_post(p.ID))
+	err = loc_to_node([]uint64{}).Save(&p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	set_item(&Post{}, []uint64{10})
+	set_item(&Post{}, []uint64{10})
+	set_item(&Post{}, []uint64{10})
+	var posts []Post
+	err = loc_to_node([]uint64{}).All(&posts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, post := range posts {
+		log.Println(post)
+	}
 }
