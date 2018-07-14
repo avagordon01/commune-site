@@ -42,7 +42,7 @@ func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	input.Markdown = r.FormValue("text")
 	input.Parent_id = parent_id
 	input.Post_id = post_id
-	err = templates["preview"].Execute(w, Page{
+	err = template_preview.Execute(w, Page{
 		Content: input,
 	})
 	if err != nil {

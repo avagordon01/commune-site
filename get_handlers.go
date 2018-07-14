@@ -35,7 +35,7 @@ func home(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	} else {
 		content.Next = start
 	}
-	err = templates["home"].Execute(w, Page{
+	err = template_home.Execute(w, Page{
 		Title:     "commune",
 		Content:   content,
 		Freshness: freshness,
@@ -58,7 +58,7 @@ func post(w http.ResponseWriter, r *http.Request, freshness uint64) {
 		http.NotFound(w, r)
 		return
 	}
-	err = templates["post"].Execute(w, Page{
+	err = template_post.Execute(w, Page{
 		Title:     post.Title,
 		Content:   post,
 		Freshness: freshness,
@@ -103,7 +103,7 @@ func search(w http.ResponseWriter, r *http.Request, freshness uint64) {
 	} else {
 		content.Next = start
 	}
-	err = templates["search"].Execute(w, Page{
+	err = template_search.Execute(w, Page{
 		Title:     search_query,
 		Content:   content,
 		Freshness: freshness,

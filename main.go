@@ -15,10 +15,14 @@ import (
 )
 
 var (
-	err        error
-	templates  map[string]*template.Template
-	text_index bleve.Index
-	database   *storm.DB
+	err              error
+	template_base    *template.Template
+	template_home    *template.Template
+	template_post    *template.Template
+	template_search  *template.Template
+	template_preview *template.Template
+	text_index       bleve.Index
+	database         *storm.DB
 )
 
 func main() {
@@ -34,13 +38,12 @@ func main() {
 	}
 	defer database.Close()
 
-	templates = make(map[string]*template.Template)
 	func_map := template.FuncMap{"human_time": humanize.Time}
-	templates["base"] = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
-	templates["home"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/home.html"))
-	templates["post"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/post.html"))
-	templates["search"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/search.html"))
-	templates["preview"] = template.Must(template.Must(templates["base"].Clone()).ParseFiles("templates/preview.html"))
+	template_base = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
+	template_home = template.Must(template.Must(template_base.Clone()).ParseFiles("templates/home.html"))
+	template_post = template.Must(template.Must(template_base.Clone()).ParseFiles("templates/post.html"))
+	template_search = template.Must(template.Must(template_base.Clone()).ParseFiles("templates/search.html"))
+	template_preview = template.Must(template.Must(template_base.Clone()).ParseFiles("templates/preview.html"))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
