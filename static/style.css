@@ -4,6 +4,15 @@
     margin: 0px;
 }
 
+/* vars */
+:root {
+    --header-color: #60d7ff;
+    --text-color: #0645ad;
+    --bg-off-white: #f0f0f0;
+    --table-border: #aaaaaa;
+    --off-text-color: #777777;
+}
+
 /* text */
 body {
     font-size: 14px;
@@ -12,13 +21,13 @@ body {
 }
 a {
     text-decoration: none;
-    color: #0645ad;
+    color: var(--text-color);
 }
 a:hover {
     text-decoration: underline;
 }
 header h1 a {
-    color: #60d7ff;
+    color: var(--header-color);
 }
 nav h2 {
     font-size: 16px;
@@ -66,7 +75,7 @@ input[type="search"], input[type="submit"], input[type="text"], textarea {
     margin-top: 2px;
     margin-bottom: 2px;
     box-sizing: border-box;
-    background: #f4f4f4;
+    background: var(--off-white);
     border: none;
 }
 textarea {
@@ -101,7 +110,7 @@ pre {
     white-space: pre-wrap;
     margin: 4px 0px;
     font-family: monospace;
-    background: #e0e0e0;
+    background: var(--bg-off-white);
 }
 table {
     margin: 4px 0px;
@@ -109,10 +118,10 @@ table {
 table, th, td {
     padding: 4px;
     border-collapse: collapse;
-    border: 1px solid #aaaaaa;
+    border: 1px solid var(--table-border);
 }
 .posts {
-    color: #777777;
+    color: var(--off-text-color);
 }
 li {
     list-style-type: decimal-leading-zero;
@@ -127,14 +136,14 @@ li {
     margin-left: 1.5em;
 }
 .info {
-    color: #777777;
+    color: var(--off-text-color);
     font-size: 12px;
 }
 .info a {
     color: inherit;
 }
 .grey {
-    color: #777777;
+    color: var(--off-text-color);
 }
 hr {
     border: 0;
@@ -142,5 +151,5 @@ hr {
 }
 hr:after {
     content: "// ----------------";
-    color: #777777;
+    color: var(--off-text-color);
 }
