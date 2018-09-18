@@ -26,17 +26,22 @@ var (
 )
 
 func main() {
+    /*
 	text_index, err = bleve.Open("database/search.bleve")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer text_index.Close()
+    */
 
 	database, err = storm.Open("database/database.bolt", storm.Codec(gob.Codec))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer database.Close()
+
+    test()
+    return
 
 	func_map := template.FuncMap{"human_time": humanize.Time}
 	template_base = template.Must(template.ParseFiles("templates/base.html")).Funcs(func_map)
@@ -49,9 +54,11 @@ func main() {
 	mux.HandleFunc("/", hsts(fresh_cookie(home)))
 	mux.HandleFunc("/post/", hsts(fresh_cookie(post)))
 	mux.HandleFunc("/search/", hsts(fresh_cookie(search)))
+    /*
 	mux.HandleFunc("/preview", hsts(user_cookie(preview)))
 	mux.HandleFunc("/submit_post", hsts(user_cookie(submit_post)))
 	mux.HandleFunc("/submit_comment", hsts(user_cookie(submit_comment)))
+    */
 	mux.Handle("/static/", http.FileServer(http.Dir("./")))
 
 	log.Println("server ready")

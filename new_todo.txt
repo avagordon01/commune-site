@@ -1,9 +1,49 @@
-howto get a recursive structure in storm
-want simplicity
-have a root bucket containing posts
-also have a 
-could have a flat bucket of posts and comments
-then have a separate tree like structure for storing ids
+only advantage of storm is that you can create multiple indexes which are correctly maintained easily
 
-no need to separate them because in storm the indexes are separate from the bucket structure?
-like we could have a recursive bucket structure and still OrderBy("Freshness*") quickly?
+want a hierarchical bucket/key structure
+
+want a function that takes a path and returns the value and all sub-values down to the next bucket
+
+a key cannot hold both a bucket and a value
+
+root/
+    posts/
+        0: test title
+        1: new title
+    comments/
+        0/
+            0: comment
+            0/0: comment
+            0/1: comment
+        1/
+            0: comment
+            1: comment
+            1/0: comment
+
+    can use a prefix search to get recursively
+        while still being able to get posts quickly
+
+root/
+    0: post
+    0/0: comment
+    0/0/0: sub-comment
+    
+    dont have to fuck with buckets
+
+perfect structure
+root/
+    x/
+        x: post
+        x/0: comment 1
+        x/0/0: comment 2
+        x/0/1: comment 3
+    y/
+        y: next post
+        y/0: top level comment
+        y/1: top level comment 2
+
+no way to have autoincrementing IDs with a recursive structure that has data at each level
+dont have autoincrementing IDs, so things might get fucked up
+
+only get autoincrementing IDs if we have every level have buckets and only uint64 for IDs
+no way to not have to access both "tables" without some duplication

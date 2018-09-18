@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"fmt"
 	"github.com/microcosm-cc/bluemonday"
@@ -8,7 +9,6 @@ import (
 	"strconv"
 	"time"
 )
-
 func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	html_san, _ := render_text(r.FormValue("text"), false)
 	var input struct {
@@ -21,7 +21,7 @@ func preview(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	post_id, post_err := strconv.ParseUint(r.FormValue("post_id"), 10, 64)
 	parent_id, parent_err := strconv.ParseUint(r.FormValue("parent_id"), 10, 64)
 	if post_err == nil && parent_err == nil {
-		parent_comment, _ := view_comment(post_id, parent_id)
+		parent_comment, _ := view_comment(id)
 		input.Parent = Post{
 			ID:       parent_comment.ID,
 			Time:     parent_comment.Time,
@@ -67,8 +67,8 @@ func submit_post(w http.ResponseWriter, r *http.Request, user_id uint64) {
 		Rand:    rand.Uint64(),
 	}
 	post.Username = user_name(post.Time, user_id, post.Rand)
-	post_id := insert_post(post)
-	http.Redirect(w, r, fmt.Sprintf("/post/%d", post_id), http.StatusSeeOther)
+	insert_post(&post)
+	http.Redirect(w, r, fmt.Sprintf("/post/%d", post.ID), http.StatusSeeOther)
 }
 
 func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
@@ -89,3 +89,4 @@ func submit_comment(w http.ResponseWriter, r *http.Request, user_id uint64) {
 	insert_comment(post_id, parent_id, comment)
 	http.Redirect(w, r, fmt.Sprintf("/post/%d#%d", post_id, comment.ID), http.StatusSeeOther)
 }
+*/

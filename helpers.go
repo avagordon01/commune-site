@@ -23,6 +23,10 @@ func hsts(f func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 }
 
 func user_name(post_time time.Time, user_id uint64, post_id uint64) string {
+    names_salt := uint64(0)
+    adjectives := []string{"Testing"}
+    colours := []string{"Green"}
+    plants := []string{"Tree"}
 	m_rand.Seed(int64(uint64(post_time.UnixNano()) ^ names_salt ^ user_id ^ post_id))
 	return adjectives[m_rand.Intn(len(adjectives))] +
 		colours[m_rand.Intn(len(colours))] +
